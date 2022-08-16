@@ -7,12 +7,15 @@ use feature qw(say);
 use strict;
 use warnings;
 
+#TODO : these should be from a configuration
+
 use constant SERVER_KEY => "B2F55FE4-B9FD-421E-8764-51CBC323E36C";
 use constant SERVER_HOST => "http://localhost:3000";
 use constant TOKEN_ENDPOINT => "/rest/token/";
 use constant ADD_USER_ENDPOINT => "/rest/user/add/";
 use constant UPDATE_USER_ENDPOINT => "/rest/user/";
 use constant GET_USERS_ENDPOINT => "/rest/users";
+use constant DELETE_USER_ENDPOINT => "/rest/user/";
 
 sub new {
     my ($class, $user) = @_;
@@ -192,6 +195,29 @@ sub get_players {
 
     # returns failure if current user isn't found in the server user list.
     return $current_user_found; 
+}
+
+
+sub remove_user {
+    my $self = shift;
+
+    my $username = $self->{user}->get_id;    
+    my $password = $self->{token};
+
+    my $url = Mojo::URL->new(SERVER_HOST.DELETE_USER_ENDPOINT.$username)->userinfo("$username:$password");
+    my $token_response =  $self->{user_agent}->delete($url)->result->json;
+
+    my $status = $token_response->{status};
+    my $code = $token_response->{code};    
+    
+    if ($code != 200) {
+        # say "Error removign user: $status : $code";
+        return 0;
+    }
+    
+    # say "Successfully removed user $username from server.";
+    return 1;
+
 }
 
 1;

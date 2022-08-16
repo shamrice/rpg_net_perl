@@ -87,12 +87,14 @@ while ($is_running) {
     }
 
 }
-
+ 
 
 say "\n\n\n\n$exit_message\n";
 $inp->blocking_getch;
 
 $scr->refresh;
+
+$net->remove_user;
 
 exit(0);
 

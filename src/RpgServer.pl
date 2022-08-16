@@ -1,25 +1,20 @@
 #!/usr/bin/perl
-
 use Mojolicious::Lite; 
 use Mojo::JSON qw(encode_json decode_json);
 use feature qw(say);
 
-
-use RpgServer::User;
-use RpgServer::Authorization; 
+use RpgServer::AuthorizationService; 
+use RpgServer::UserService; 
 
 use strict;
 use warnings;
 
-#TODO : make configurable
-use constant SERVER_KEY => "B2F55FE4-B9FD-421E-8764-51CBC323E36C";
-use constant PLAYER_TIMEOUT_SECONDS => 60;
 
 #TODO : admin remove player endpoint and also a similar endpoint where players can remove themselves.
 
 my $log = Mojo::Log->new;
-my %user_hash;
-my $auth_service = RpgServer::Authorization->new;
+my $auth_service = RpgServer::AuthorizationService->new;
+my $user_service = RpgServer::UserService->new;
 
 $log->info("Server starting up");
 
@@ -34,42 +29,35 @@ post '/rest/user/add/:id' => sub {
             code => 401
         };  
         return $self->render(json => $error_response, status => 401);
-    }
+    } 
 
-    # TODO : validate that the values sent in are sane / valid.
-
+ 
     my $data = decode_json($self->req->body);
     $log->info("JSON data: $data");     
     my $name = $data->{'name'};
     my $user_char = $data->{'user_char'};
     my $x = $data->{'x'};
     my $y = $data->{'y'};
+     
  
-    if (exists $user_hash{$id}) {
-        $log->warn("Tried to add already existing user: $id");
+    if (!$user_service->add_user($id, $name, $user_char, $x, $y)) {         
         my $error_response = {
             id => $id, 
             status => "User already added", 
             code => 400
         };
-        return $self->render(json => $error_response, status => 400);
+        return $self->render(json => $error_response, status => 400);        
     }
 
 
-    $log->info("Adding user id: $id :: name: $name : user_char: $user_char : x: $x : y: $y");
-    
-    my $new_user = RpgServer::User->new($id, $name, $user_char, $x, $y);
-
-    $user_hash{$id} = $new_user;
-
-    my $response = {
+    my $response = { 
         userId => $id, 
         status => "Success",
         code => "200"
     };
     $self->render(json => $response);
 }; 
- 
+  
 
 get '/rest/users' => sub {
     my $self = shift;    
@@ -81,31 +69,8 @@ get '/rest/users' => sub {
         };  
         return $self->render(json => $error_response, status => 401);
     } 
- 
-    my $num_current_users = keys %user_hash;
-    $log->info("Current number of found users: $num_current_users");
 
-    my $user_list = [ ];
-    foreach my $user (keys %user_hash) {
-
-        my $found_user = $user_hash{$user};
-
-        #$log->info("Found user: $found_user");
-
-        if (time() - $found_user->{last_activity} > PLAYER_TIMEOUT_SECONDS) {
-            $log->info("User: $user has timed out and will be removed from the server.");
-            delete $user_hash{$user};
-            next;
-        }
-        
-        push @$user_list, { 
-            id => $found_user->{id}, 
-            name => $found_user->{name},
-            user_char => $found_user->{user_char},
-            x => $found_user->{x},
-            y => $found_user->{y}
-        }; 
-    }
+    my $user_list = $user_service->get_users;
 
     my $users_response = {
         status => "Success",        
@@ -115,7 +80,6 @@ get '/rest/users' => sub {
 
     $self->render(json => $users_response); 
  
-
 };
 
 
@@ -132,26 +96,18 @@ get '/rest/user/:id' => sub {
         return $self->render(json => $error_response, status => 401);
     } 
  
-    if (not exists $user_hash{$id}) {
+
+    my $found_user = $user_service->get_user($id);
+    if (defined $found_user) {
+        $self->render(json => $found_user);
+    } else {
         my $error_response = {
             id => $id, 
             status => "User not found",
             code => 404
         };
         return $self->render(json => $error_response, status => 404);
-    } 
-
-    my $found_user = $user_hash{$id};
-
-    my $user = {
-        id => $found_user->{id},
-        name => $found_user->{name},
-        user_char => $found_user->{user_char},
-        x => $found_user->{x},
-        y => $found_user->{y}
-    };
-
-    $self->render(json => $user);
+    }
 };
 
 
@@ -166,9 +122,7 @@ put '/rest/user/:id' => sub {
             code => 401
         };  
         return $self->render(json => $error_response, status => 401);
-    }
-
-    # TODO : validate that the values sent in are sane / valid.
+    }    
 
     my $data = decode_json($self->req->body);
     $log->info("JSON data: $data");     
@@ -176,28 +130,55 @@ put '/rest/user/:id' => sub {
     my $user_char = $data->{'user_char'};
     my $x = $data->{'x'};
     my $y = $data->{'y'};
- 
-    if (not exists $user_hash{$id}) {
-        $log->warn("Tried to update a user that doesn't exist: $id");
+
+    if ($user_service->update_user($id, $name, $user_char, $x, $y)) {
+        my $response = {
+            userId => $id, 
+            status => "Success",
+            code => "200"
+        };
+        $self->render(json => $response);
+    } else {
         my $error_response = {
             id => $id, 
             status => "User does not exist", 
             code => 400
-        };
-        return $self->render(json => $error_response, status => 400);
+        };  
+        return $self->render(json => $error_response, status => 400);        
     }
 
-    $log->info("Updating user id: $id :: name: $name : user_char: $user_char : x: $x : y: $y");
-       
+};
 
-    $user_hash{$id}->update($x, $y, $name, $user_char);
 
-    my $response = {
-        userId => $id, 
-        status => "Success",
-        code => "200"
-    };
-    $self->render(json => $response);
+ 
+del '/rest/user/:id' => sub {
+    my $self = shift;
+    my $id = $self->param('id');
+
+    if (!$auth_service->validate_auth($self->req->headers->authorization, $id)) {
+        my $error_response = {            
+            status => "Unauthorized",
+            code => 401
+        };  
+        return $self->render(json => $error_response, status => 401);
+    }   
+
+    if ($user_service->remove_user($id)) {
+ 
+        my $response = {
+            userId => $id, 
+            status => "Success",
+            code => "200"
+        };
+        $self->render(json => $response);
+    } else {
+        my $error_response = {
+            id => $id, 
+            status => "User does not exist", 
+            code => 400
+        };  
+        return $self->render(json => $error_response, status => 400);     
+    }
 };
 
 
@@ -227,7 +208,6 @@ get '/rest/token/:id' => sub {
 
     $self->render(json => $tokenResponse);
 };
-
 
 
 

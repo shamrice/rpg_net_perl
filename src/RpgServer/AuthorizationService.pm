@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-package RpgServer::Authorization;
+package RpgServer::AuthorizationService;
 
 use feature qw(say);
 use strict;
@@ -8,6 +8,7 @@ use warnings;
 use MIME::Base64;
 use Data::UUID;
 
+#TODO : make configurable and get via a configuration module.
 use constant SERVER_KEY => "B2F55FE4-B9FD-421E-8764-51CBC323E36C";
 
 
