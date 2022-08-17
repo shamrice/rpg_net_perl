@@ -3,8 +3,10 @@ package RpgServer::UserService;
 
 use strict;
 use warnings;
+use Moo;
 
 use RpgServer::User;
+
 
 use constant PLAYER_TIMEOUT_SECONDS => 60;
 
@@ -12,12 +14,6 @@ my $log = Mojo::Log->new;
 my %user_hash;
 
 
-sub new {
-    my $class = shift;
-    my $self = { };
-
-    bless $self, $class;
-}
 
 =pod
 
@@ -53,9 +49,15 @@ sub add_user {
 
     # TODO : validate that the values sent in are sane / valid.
  
-    my $new_user = RpgServer::User->new($id, $name, $user_char, $x, $y);
+    my $new_user = RpgServer::User->new(
+        id => $id, 
+        name => $name, 
+        user_char => $user_char, 
+        x => $x, 
+        y => $y
+    );
 
-    my $new_id = $new_user->{id};
+    my $new_id = $new_user->id;
     $log->info("New id = $new_id");
 
     if (exists $user_hash{$new_id}) {
@@ -64,7 +66,7 @@ sub add_user {
         return 0;
     }     
 
-    $user_hash{$new_user->{id}} = $new_user;
+    $user_hash{$new_user->id} = $new_user;
 
     my $user_str = $user_hash{$new_id}->to_string();
     $log->info("Added user :: $user_str");   
@@ -100,21 +102,21 @@ sub get_users {
     foreach my $user_id (keys %user_hash) {
 
         my $found_user = $user_hash{$user_id};
-        my $found_user_id = $found_user->{id};
+        my $found_user_id = $found_user->id;
         $log->info("Found user: $found_user_id");
         
-        if (time() - $found_user->{last_activity} > PLAYER_TIMEOUT_SECONDS) {
+        if (time() - $found_user->last_activity > PLAYER_TIMEOUT_SECONDS) {
             $log->info("User: $found_user_id has timed out and will be removed from the server.");
             delete $user_hash{$found_user_id};
             next;
         }
        
         push @$user_list, { 
-            id => $found_user->{id}, 
-            name => $found_user->{name},
-            user_char => $found_user->{user_char},
-            x => $found_user->{x},
-            y => $found_user->{y}
+            id => $found_user->id, 
+            name => $found_user->name,
+            user_char => $found_user->user_char,
+            x => $found_user->x,
+            y => $found_user->y
         }; 
     }
     return $user_list;
@@ -130,11 +132,11 @@ sub get_user {
     my $found_user = $user_hash{$id};
 
     my $user = {
-        id => $found_user->{id},
-        name => $found_user->{name},
-        user_char => $found_user->{user_char},
-        x => $found_user->{x},
-        y => $found_user->{y}
+        id => $found_user->id,
+        name => $found_user->name,
+        user_char => $found_user->user_char,
+        x => $found_user->x,
+        y => $found_user->y
     };
 
     return $found_user;

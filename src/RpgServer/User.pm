@@ -2,54 +2,66 @@
 package RpgServer::User;
 
 use Data::UUID;
-use strict;
-use warnings;
+use Moo;
 
-sub new {    
-    my ($class, $id, $name, $user_char, $x, $y) = @_;
+has id => (
+    is => 'rwp',
+    required => 1
+);
 
-    my $self = { 
-        id => $id,  
-        name => $name,      
-        user_char => $user_char,
-        x => $x,
-        y => $y,
-        last_activity => time()
-    };
-    bless $self, $class;    
-}
+has name => (
+    is => 'rwp',
+    required => 1
+);
+
+has user_char => (
+    is => 'rwp',
+    required => 1
+);
+
+has x => (
+    is => 'rwp',
+    required => 1
+);
+
+has y => (
+    is => 'rwp',
+    required => 1
+);
+
+has last_activity => (
+    is => 'rwp',
+    default => time()
+);
+
 
 sub update {
     my ($self, $x, $y, $name, $user_char) = @_;
     if (defined $x) {        
-        $self->{x} = $x;        
+        $self->_set_x($x);        
     }
     if (defined $y) {        
-        $self->{y} = $y;
+        $self->_set_y($y);
     }
     if (defined $name) {
-        $self->{name} = $name;
+        $self->_set_name($name);
     }
     if (defined $user_char) {
-        $self->{user_char} = $user_char;
+        $self->_set_user_char($user_char);
     }   
 
-    $self->{last_activity} = time(); 
+    $self->_set_last_activity(time()); 
 }
 
-sub get_id {
-    my $self = shift;
-    return $self->{id};
-}
 
 sub to_string {
     my $self = shift;
-    my $id = $self->{id};
-    my $name = $self->{name};
-    my $user_char = $self->{user_char};
-    my $x = $self->{x};
-    my $y = $self->{y};
-    my $last_activity = $self->{last_activity};
+    my $id = $self->id;
+    my $name = $self->name;
+    my $user_char = $self->user_char;
+    my $x = $self->x;
+    my $y = $self->y;
+    my $last_activity = $self->last_activity;
 
     return "User id: $id :: name: $name :: user_char: $user_char :: x: $x :: y: $y :: last_activity: $last_activity";
 }

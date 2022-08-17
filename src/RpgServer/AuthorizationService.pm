@@ -2,8 +2,7 @@
 package RpgServer::AuthorizationService;
 
 use feature qw(say);
-use strict;
-use warnings;
+use Moo;
 
 use MIME::Base64;
 use Data::UUID;
@@ -16,14 +15,6 @@ my %user_hash;
 my %valid_tokens;
 
 my $log = Mojo::Log->new;
-
-sub new {    
-    my ($class) = @_;
-
-    my $self = { };
-    bless $self, $class;
-}
-
 
 sub generate_token {
     my ($self, $id) = @_;

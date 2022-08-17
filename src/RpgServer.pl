@@ -10,16 +10,16 @@ use RpgServer::UserService;
 
 use strict;
 use warnings;
-
-
+ 
+ 
 #TODO : admin remove player endpoint and also a similar endpoint where players can remove themselves.
 
 my $log = Mojo::Log->new;
 my $auth_service = RpgServer::AuthorizationService->new;
 my $user_service = RpgServer::UserService->new;
-
+ 
 $log->info("Server starting up");
-
+ 
 
 post '/rest/user/add/:id' => sub {
     my $self = shift;
