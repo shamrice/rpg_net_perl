@@ -23,9 +23,15 @@ has user => (
     required => 1
 );
 
+has token => (
+    is => 'rwp',
+    required => 0
+);
+
 has user_agent => (
     is => 'ro'
 );
+
 
 sub BUILD {
     my ($self, $args) = @_;
@@ -37,7 +43,7 @@ sub BUILD {
 sub authenticate {
     my $self = shift;
 
-    my $username = $self->{user}->id;    
+    my $username = $self->user->id;    
 
     my $url = Mojo::URL->new(SERVER_HOST.TOKEN_ENDPOINT.$username)->userinfo("$username:".SERVER_KEY);
     my $token_response =  $self->{user_agent}->get($url)->result->json;
@@ -53,7 +59,7 @@ sub authenticate {
         return 0;
     }
 
-    $self->{token} = $token_value;
+    $self->_set_token($token_value);
     say "Successfully authenticated $username with server.";
     return 1;
 }
@@ -63,8 +69,8 @@ sub authenticate {
 sub add_user {
     my $self = shift;
 
-    my $username = $self->{user}->id;
-    my $password = $self->{token};
+    my $username = $self->user->id;
+    my $password = $self->token;
 
     my $url = Mojo::URL->new(SERVER_HOST.ADD_USER_ENDPOINT.$username)->userinfo("$username:$password");
 
@@ -98,8 +104,8 @@ sub add_user {
 sub update_user {
     my ($self, $x, $y, $name, $user_char) = @_;
 
-    my $username = $self->{user}->id;
-    my $password = $self->{token};
+    my $username = $self->user->id;
+    my $password = $self->token;
 
     my $url = Mojo::URL->new(SERVER_HOST.UPDATE_USER_ENDPOINT.$username)->userinfo("$username:$password");
 
@@ -139,8 +145,8 @@ sub update_user {
 sub get_players {
     my ($self, $current_player_list) = @_;
 
-    my $username = $self->{user}->id;    
-    my $password = $self->{token};
+    my $username = $self->user->id;    
+    my $password = $self->token;
 
     my $url = Mojo::URL->new(SERVER_HOST.GET_USERS_ENDPOINT)->userinfo("$username:$password");
     my $response =  $self->{user_agent}->get($url)->result->json;
@@ -159,12 +165,17 @@ sub get_players {
         return 0;
     }
     
+    # set existing players in the hash to inactive unless found in response.
+    foreach my $user_id (keys %$current_player_list) {
+        $$current_player_list{$user_id}->is_active(0);            
+    }
+
     my $current_user_found = 0;
 
     foreach my $user (@$users) {        
         my $user_id = $user->{id};
 
-        if ($user_id eq $self->{user}->{id}) {
+        if ($user_id eq $self->user->id) {
             $current_user_found = 1;            
         }
 
@@ -172,31 +183,37 @@ sub get_players {
         my $old_y = 0;
         my $force_redraw = 0;
 
-        if (exists $$current_player_list{$user_id}) {
-            $old_x = $$current_player_list{$user_id}->x;
-            $old_y = $$current_player_list{$user_id}->y;                        
-        } else {
-            $force_redraw = 1;
-        }
-    
-        my $needs_redraw = $force_redraw ||          
-            ($old_x != $user->{x} || $old_y != $user->{y});
-        
-        my $user_to_update = RpgClient::User->new(              
-            name => $user->{name},
-            user_char => $user->{user_char},
-            x => $user->{x},
-            y => $user->{y},
-            old_x => $old_x,
-            old_y => $old_y,
-            needs_redraw => $needs_redraw   
-        );
+        my $user_to_update = $$current_player_list{$user_id};
 
-        $user_to_update->_set_id($user_id);
-       
+        # add new user if not found, otherwise update existing hash values.
+        if (not defined $user_to_update) {            
+            $user_to_update = RpgClient::User->new(              
+                name => $user->{name},
+                user_char => $user->{user_char},
+                x => $user->{x},
+                y => $user->{y},
+                old_x => $old_x,
+                old_y => $old_y,
+                needs_redraw => 1   
+            );
+            $user_to_update->_set_id($user_id);
+        } else {
+            $old_x = $user_to_update->x;
+            $old_y = $user_to_update->y; 
+
+            my $needs_redraw = ($old_x != $user->{x} || $old_y != $user->{y});
+
+            $user_to_update->x($user->{x});
+            $user_to_update->y($user->{y});
+            $user_to_update->_set_old_x($old_x);
+            $user_to_update->_set_old_y($old_y);
+            $user_to_update->needs_redraw($needs_redraw);    
+        }
+
+        $user_to_update->is_active(1);
 
         $$current_player_list{$user_id} = $user_to_update;
-    
+ 
     }
 
     # returns failure if current user isn't found in the server user list.
@@ -207,8 +224,8 @@ sub get_players {
 sub remove_user {
     my $self = shift;
 
-    my $username = $self->{user}->id;    
-    my $password = $self->{token};
+    my $username = $self->user->id;    
+    my $password = $self->token;
 
     my $url = Mojo::URL->new(SERVER_HOST.DELETE_USER_ENDPOINT.$username)->userinfo("$username:$password");
     my $token_response =  $self->{user_agent}->delete($url)->result->json;

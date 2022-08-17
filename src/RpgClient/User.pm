@@ -30,6 +30,11 @@ has needs_redraw => (
     default => 1
 );
 
+has is_active => (
+    is => 'rw',
+    default => 1
+);
+
 has old_x => (
     is => 'rwp',
     default => 0
@@ -43,6 +48,8 @@ has old_y => (
 has id => (
     is => 'rwp'
 );
+
+
 
 
 sub BUILD {
@@ -63,16 +70,17 @@ sub BUILD {
 
 sub move {
     my ($self, $x_delta, $y_delta) = @_;
-    $self->{old_x} = $self->{x};
-    $self->{old_y} = $self->{y};
-    $self->{x} += $x_delta;
-    $self->{y} += $y_delta;
-    $self->{needs_redraw} = 1;
+    $self->_set_old_x($self->x);
+    $self->_set_old_y($self->y);    
+    $self->x($self->x + $x_delta);
+    $self->y($self->y + $y_delta);
+    $self->needs_redraw(1);
+    $self->is_active(1);
 }
 
 sub get_position {
     my $self = shift;
-    my @position = ($self->{x}, $self->{y});    
+    my @position = ($self->x, $self->y);    
     return @position;
 }
 

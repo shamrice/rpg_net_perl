@@ -115,7 +115,7 @@ while ($is_running) {
 }
  
 
-say "\n\n\n\n$exit_message\n";
+$scr->draw(40, 20, $exit_message);
 $inp->blocking_getch;
 
 $scr->refresh;
@@ -130,7 +130,19 @@ sub update_and_draw_players {
 
     foreach my $user_to_draw (keys %user_list) {    
 
-        if ($user_list{$user_to_draw}->needs_redraw) {
+        #draw a mask over inactive users and remove them from the hash.
+        #TODO : should draw ground char instead of just space.
+        if (!$user_list{$user_to_draw}->is_active) {   
+            
+            $scr->draw(
+                $user_list{$user_to_draw}->x, 
+                $user_list{$user_to_draw}->y, 
+                ' '
+            );
+
+            delete $user_list{$user_to_draw};
+
+        } elsif ($user_list{$user_to_draw}->needs_redraw) {
             
             $scr->draw(
                 $user_list{$user_to_draw}->x, 
