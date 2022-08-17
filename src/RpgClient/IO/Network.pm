@@ -178,18 +178,7 @@ sub get_players {
         } else {
             $force_redraw = 1;
         }
-=pod        
-        $$current_player_list{$user_id} = {
-            id => $user_id,
-            name => $user->{name},
-            user_char => $user->{user_char},
-            x => $user->{x},
-            y => $user->{y},
-            old_x => $old_x,
-            old_y => $old_y
-        };
-=cut;        
-
+    
         my $needs_redraw = $force_redraw ||          
             ($old_x != $user->{x} || $old_y != $user->{y});
         
@@ -207,17 +196,6 @@ sub get_players {
        
 
         $$current_player_list{$user_id} = $user_to_update;
-
-        
-=pod
-        $$current_player_list{$user_id}->needs_redraw(
-            $force_redraw ||          
-            ($$current_player_list{$user_id}->old_x != $$current_player_list{$user_id}->x || 
-            $$current_player_list{$user_id}->old_y != $$current_player_list{$user_id}->y)
-        );
-=cut;
-      #  my $user_char = $$current_player_list{user_id}->needs_redraw;
-      #  say "user to update= $user_char";
     
     }
 
