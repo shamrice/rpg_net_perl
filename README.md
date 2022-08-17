@@ -6,7 +6,8 @@ There isn't much here yet. Once things start moving along (**IF** they do) this 
 
 ## Perl CPAN packages required
 This list may change on the fly...
-* [Mojolicious](https://metacpan.org/dist/Mojolicious/view/script/mojo)
+* [Mojolicious](https://metacpan.org/pod/Mojolicious)
+* [Moo](https://metacpan.org/pod/Moo)
 * [Data::UUID](https://metacpan.org/pod/Data::UUID)
 * [Term::Screen](https://metacpan.org/pod/Term::Screen)
 * [Time::HiRes](https://metacpan.org/pod/Time::HiRes)
