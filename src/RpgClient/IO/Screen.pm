@@ -2,35 +2,35 @@
 
 package RpgClient::IO::Screen;
 
-use feature qw(say);
-
-use strict;
-use warnings;
-
 require Term::Screen;
 
-sub new {
-    my $class = shift;
+use feature qw(say);
+use Moo;
 
-    my $scr = Term::Screen->new();    
-    unless ($scr) { die "Something went wrong $!\n"; }
 
-    $scr->noecho;
+has screen => (
+    is => 'rwp'
+);
 
-    my $self = { screen => $scr };
-    bless $self, $class;    
+sub BUILD {
+    my ($self, $ags) = @_;
+    my $scr = Term::Screen->new();
+    unless ($scr) { die "Something when wrong $!\n"; }
+    $self->_set_screen($scr);
+    $self->screen->noecho;
 }
+
 
 sub refresh {
     my $self = shift;
-    $self->{screen}->clrscr();
+    $self->screen->clrscr();
 }
 
 
 sub draw {
     my ($self, $x, $y, $text) = @_;
-    $self->{screen}->at($y, $x);
-    $self->{screen}->puts($text);
+    $self->screen->at($y, $x);
+    $self->screen->puts($text);
     # $scr->at(10, 6)->bold()->puts("hi!")->normal();
 }
 

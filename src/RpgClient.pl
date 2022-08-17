@@ -1,4 +1,5 @@
 #!/usr/bin/perl
+package RpgClient;
 
 use strict;
 use warnings;
@@ -14,15 +15,15 @@ use RpgClient::User;
 
 
 print "Please enter a player name: ";
-my $player_name = <>;
+my $player_name = "#"; #<>;
 print "Please enter a player token: ";
-my $player_token = <>;
+my $player_token = "#"; #<>;
 
 
-my $user = RpgClient::User->new($player_name, $player_token);
-my %user_list = ($user->get_id => $user);
+my $user = RpgClient::User->new(name => $player_name, user_char => $player_token);
+my %user_list = ($user->id => $user);
 
-my $net = RpgClient::IO::Network->new($user);
+my $net = RpgClient::IO::Network->new(user => $user);
 $net->authenticate or die "Error getting tokens from server: $!";
 $net->add_user or die "Failed to add new user to server: $!";
 
@@ -30,7 +31,7 @@ $net->add_user or die "Failed to add new user to server: $!";
 # exit 1;
 
 my $scr = RpgClient::IO::Screen->new;
-my $inp = RpgClient::IO::UserInput->new($scr->{screen});
+my $inp = RpgClient::IO::UserInput->new(screen => $scr->{screen});
 
 $scr->refresh;
 
@@ -69,12 +70,37 @@ while ($is_running) {
         }
         when ('d') {
             $user->move(1, 0);
-        }        
+        }
+        when ('u') {
+            my $y = 1;
+            foreach my $user (keys %user_list) {
+                my $current_users_str = "";
+                $current_users_str = "id=".$user_list{$user}->id;
+                $scr->draw(80, $y, $current_users_str);
+                $y++;
+                $scr->draw(80, $y, "name=".$user_list{$user}->name);
+                $y++;
+                $scr->draw(80, $y, "user_char=".$user_list{$user}->user_char);
+                $y++;
+                $scr->draw(80, $y, "x=".$user_list{$user}->x);
+                $y++;
+                $scr->draw(80, $y, "y=".$user_list{$user}->y); 
+                $y++;
+                $scr->draw(80, $y, "old_x=".$user_list{$user}->old_x);
+                $y++;
+                $scr->draw(80, $y, "old_y=".$user_list{$user}->old_y);
+                $y++;
+                $scr->draw(80, $y, "needs_redraw=".$user_list{$user}->needs_redraw);
+                $y++;                                          
+            }
+
+            
+        }
     }    
 
     if ($moved) {        
-        if ($net->update_user($user->{x}, $user->{y})) {     
-            $scr->draw($user->{x}, $user->{y}, $user->{user_char});
+        if ($net->update_user($user->x, $user->y)) {     
+            $scr->draw($user->x, $user->y, $user->user_char);
         } else {
             $is_running = 0;
             $exit_message = "Failed send player update to server. Forced quit.";
@@ -104,17 +130,17 @@ sub update_and_draw_players {
 
     foreach my $user_to_draw (keys %user_list) {    
 
-        if ($user_list{$user_to_draw}->{needs_redraw}) {
+        if ($user_list{$user_to_draw}->needs_redraw) {
             
             $scr->draw(
-                $user_list{$user_to_draw}->{x}, 
-                $user_list{$user_to_draw}->{y}, 
-                $user_list{$user_to_draw}->{user_char}
+                $user_list{$user_to_draw}->x, 
+                $user_list{$user_to_draw}->y, 
+                $user_list{$user_to_draw}->user_char
             );
 
             $scr->draw(
-                $user_list{$user_to_draw}->{old_x}, 
-                $user_list{$user_to_draw}->{old_y}, 
+                $user_list{$user_to_draw}->old_x, 
+                $user_list{$user_to_draw}->old_y, 
                 ' '
             );
         }

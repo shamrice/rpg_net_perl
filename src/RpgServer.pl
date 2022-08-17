@@ -1,4 +1,6 @@
 #!/usr/bin/perl
+package RpgServer;
+
 use Mojolicious::Lite; 
 use Mojo::JSON qw(encode_json decode_json);
 use feature qw(say);

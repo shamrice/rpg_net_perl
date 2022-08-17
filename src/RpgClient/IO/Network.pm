@@ -4,8 +4,8 @@ use Mojo::UserAgent;
 use Data::UUID;
 
 use feature qw(say);
-use strict;
-use warnings;
+use Moo;
+use Data::Dumper;
 
 #TODO : these should be from a configuration
 
@@ -17,23 +17,27 @@ use constant UPDATE_USER_ENDPOINT => "/rest/user/";
 use constant GET_USERS_ENDPOINT => "/rest/users";
 use constant DELETE_USER_ENDPOINT => "/rest/user/";
 
-sub new {
-    my ($class, $user) = @_;
 
+has user => (
+    is => "rwp",
+    required => 1
+);
+
+has user_agent => (
+    is => 'ro'
+);
+
+sub BUILD {
+    my ($self, $args) = @_;
     my $ua = Mojo::UserAgent->new;
-
-    my $self = { 
-        user => $user,        
-        user_agent => $ua        
-    };
-
-    bless $self, $class;
+    $self->{user_agent} = $ua;
 }
+
 
 sub authenticate {
     my $self = shift;
 
-    my $username = $self->{user}->get_id;    
+    my $username = $self->{user}->id;    
 
     my $url = Mojo::URL->new(SERVER_HOST.TOKEN_ENDPOINT.$username)->userinfo("$username:".SERVER_KEY);
     my $token_response =  $self->{user_agent}->get($url)->result->json;
@@ -59,18 +63,18 @@ sub authenticate {
 sub add_user {
     my $self = shift;
 
-    my $username = $self->{user}->get_id;
+    my $username = $self->{user}->id;
     my $password = $self->{token};
 
     my $url = Mojo::URL->new(SERVER_HOST.ADD_USER_ENDPOINT.$username)->userinfo("$username:$password");
 
 
     my $req_body = {
-        id => $self->{user}->get_id,
-        name => $self->{user}->get_name,
-        user_char => $self->{user}->get_user_char,
-        x => $self->{user}->get_x,
-        y => $self->{user}->get_y
+        id => $self->{user}->id,
+        name => $self->{user}->name,
+        user_char => $self->{user}->user_char,
+        x => $self->{user}->x,
+        y => $self->{user}->y
     };
 
     my $response =  $self->{user_agent}->post($url => json => $req_body)->result->json;
@@ -94,13 +98,13 @@ sub add_user {
 sub update_user {
     my ($self, $x, $y, $name, $user_char) = @_;
 
-    my $username = $self->{user}->get_id;
+    my $username = $self->{user}->id;
     my $password = $self->{token};
 
     my $url = Mojo::URL->new(SERVER_HOST.UPDATE_USER_ENDPOINT.$username)->userinfo("$username:$password");
 
     my $req_body = {
-        id => $self->{user}->get_id
+        id => $self->{user}->id
     };
 
     if (defined $x) {
@@ -135,7 +139,7 @@ sub update_user {
 sub get_players {
     my ($self, $current_player_list) = @_;
 
-    my $username = $self->{user}->get_id;    
+    my $username = $self->{user}->id;    
     my $password = $self->{token};
 
     my $url = Mojo::URL->new(SERVER_HOST.GET_USERS_ENDPOINT)->userinfo("$username:$password");
@@ -169,12 +173,12 @@ sub get_players {
         my $force_redraw = 0;
 
         if (exists $$current_player_list{$user_id}) {
-            $old_x = $$current_player_list{$user_id}->{x};
-            $old_y = $$current_player_list{$user_id}->{y};                        
+            $old_x = $$current_player_list{$user_id}->x;
+            $old_y = $$current_player_list{$user_id}->y;                        
         } else {
             $force_redraw = 1;
         }
-        
+=pod        
         $$current_player_list{$user_id} = {
             id => $user_id,
             name => $user->{name},
@@ -184,13 +188,37 @@ sub get_players {
             old_x => $old_x,
             old_y => $old_y
         };
+=cut;        
+
+        my $needs_redraw = $force_redraw ||          
+            ($old_x != $user->{x} || $old_y != $user->{y});
         
-        $$current_player_list{$user_id}->{needs_redraw} = (   
-            $force_redraw ||          
-            ($$current_player_list{$user_id}->{old_x} != $$current_player_list{$user_id}->{x} || 
-            $$current_player_list{$user_id}->{old_y} != $$current_player_list{$user_id}->{y})
+        my $user_to_update = RpgClient::User->new(              
+            name => $user->{name},
+            user_char => $user->{user_char},
+            x => $user->{x},
+            y => $user->{y},
+            old_x => $old_x,
+            old_y => $old_y,
+            needs_redraw => $needs_redraw   
         );
+
+        $user_to_update->_set_id($user_id);
+       
+
+        $$current_player_list{$user_id} = $user_to_update;
+
         
+=pod
+        $$current_player_list{$user_id}->needs_redraw(
+            $force_redraw ||          
+            ($$current_player_list{$user_id}->old_x != $$current_player_list{$user_id}->x || 
+            $$current_player_list{$user_id}->old_y != $$current_player_list{$user_id}->y)
+        );
+=cut;
+      #  my $user_char = $$current_player_list{user_id}->needs_redraw;
+      #  say "user to update= $user_char";
+    
     }
 
     # returns failure if current user isn't found in the server user list.
@@ -201,7 +229,7 @@ sub get_players {
 sub remove_user {
     my $self = shift;
 
-    my $username = $self->{user}->get_id;    
+    my $username = $self->{user}->id;    
     my $password = $self->{token};
 
     my $url = Mojo::URL->new(SERVER_HOST.DELETE_USER_ENDPOINT.$username)->userinfo("$username:$password");
