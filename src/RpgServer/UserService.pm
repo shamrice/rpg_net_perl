@@ -103,13 +103,13 @@ sub get_users {
 
         my $found_user = $user_hash{$user_id};
         my $found_user_id = $found_user->id;
-        $log->info("Found user: $found_user_id");
+        $log->info("Found user: ".$found_user->to_string);
         
-        if (time() - $found_user->last_activity > PLAYER_TIMEOUT_SECONDS) {
-            $log->info("User: $found_user_id has timed out and will be removed from the server.");
-            delete $user_hash{$found_user_id};
-            next;
-        }
+        #if (time() - $found_user->last_activity > PLAYER_TIMEOUT_SECONDS) {
+        #    $log->info("User: $found_user_id has timed out and will be removed from the server.");
+        #    delete $user_hash{$found_user_id};
+        #    next;
+        #}
        
         push @$user_list, { 
             id => $found_user->id, 

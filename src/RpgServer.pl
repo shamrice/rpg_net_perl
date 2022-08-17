@@ -19,8 +19,23 @@ my $auth_service = RpgServer::AuthorizationService->new;
 my $user_service = RpgServer::UserService->new;
  
 $log->info("Server starting up");
- 
 
+
+# debug loading of test map...
+my @map = ( );
+
+my $map_world = 0;
+my $map_y = 0;
+my $map_x = 0;
+open(MAP_FH, '<', './RpgServer/data/maps/test.map') or die "Cannot load test map data : $!\n";
+while (<MAP_FH>) {
+    my $row = $_;
+    chomp($row);
+    $map[$map_world][$map_x][$map_y] .= $row;    
+}
+close(MAP_FH);
+
+  
 post '/rest/user/add/:id' => sub {
     my $self = shift;
     my $id = $self->param('id');
@@ -57,7 +72,7 @@ post '/rest/user/add/:id' => sub {
         status => "Success",
         code => "200"
     };
-    $self->render(json => $response);
+    return $self->render(json => $response);
 }; 
   
 
@@ -80,7 +95,7 @@ get '/rest/users' => sub {
         users => $user_list
     };
 
-    $self->render(json => $users_response); 
+    return $self->render(json => $users_response); 
  
 };
 
@@ -101,7 +116,7 @@ get '/rest/user/:id' => sub {
 
     my $found_user = $user_service->get_user($id);
     if (defined $found_user) {
-        $self->render(json => $found_user);
+        return $self->render(json => $found_user);
     } else {
         my $error_response = {
             id => $id, 
@@ -139,7 +154,7 @@ put '/rest/user/:id' => sub {
             status => "Success",
             code => "200"
         };
-        $self->render(json => $response);
+        return $self->render(json => $response);
     } else {
         my $error_response = {
             id => $id, 
@@ -172,7 +187,7 @@ del '/rest/user/:id' => sub {
             status => "Success",
             code => "200"
         };
-        $self->render(json => $response);
+        return $self->render(json => $response);
     } else {
         my $error_response = {
             id => $id, 
@@ -183,6 +198,40 @@ del '/rest/user/:id' => sub {
     }
 };
 
+ 
+get '/rest/map/:world_id/:x/:y' => sub {
+    my $self = shift;
+    my $world_id = $self->param('world_id');
+    my $world_x = $self->param('x');
+    my $world_y = $self->param('y');
+
+    if (!$auth_service->validate_auth($self->req->headers->authorization)) {
+        my $error_response = {            
+            status => "Unauthorized",
+            code => 401
+        };  
+        return $self->render(json => $error_response, status => 401);
+    }   
+
+    if (!exists($map[$world_id][$world_x][$world_y])) {
+        $log->info("Map data not found at $world_id, $world_x, $world_y");
+        my $data_not_found = {
+            status => "Map data not found",
+            code => 404,            
+        };
+
+        return $self->render(json => $data_not_found, status => 404);
+    }
+
+    my $world_data_response = {
+        status => "Success",
+        code => 200,
+        data => $map[$world_id][$world_x][$world_y]
+    };
+
+    return $self->render(json => $world_data_response);
+
+};
 
 
 get '/rest/token/:id' => sub {
@@ -208,7 +257,7 @@ get '/rest/token/:id' => sub {
         code => 200
     };
 
-    $self->render(json => $tokenResponse);
+    return $self->render(json => $tokenResponse);
 };
 
 

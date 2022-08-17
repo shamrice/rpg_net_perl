@@ -17,12 +17,12 @@ has user_char => (
 
 has x => (
     is => 'rw',
-    default => int(rand(80)) + 1
+    default => int(rand(79)) + 1
 );
 
 has y => (
     is => 'rw',
-    default => int(rand(20)) + 1
+    default => int(rand(19)) + 1
 );
 
 has needs_redraw => (

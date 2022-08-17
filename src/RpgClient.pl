@@ -15,9 +15,9 @@ use RpgClient::User;
 
 
 print "Please enter a player name: ";
-my $player_name = "#"; #<>;
+my $player_name = <>;
 print "Please enter a player token: ";
-my $player_token = "#"; #<>;
+my $player_token = <>;
 
 
 my $user = RpgClient::User->new(name => $player_name, user_char => $player_token);
@@ -41,6 +41,18 @@ say "polling time = $polling_time";
 # exit 1;
 
 my $exit_message = "Exiting...";
+
+#debug loading and printing map data.
+my $map_data = $net->get_map(0, 0, 0);
+
+my $map_y = 0;
+my $map_idx = 0;
+while ($map_idx <= length $map_data) {
+    
+    $scr->draw(0, $map_y, substr($map_data, $map_idx, 80));
+    $map_idx += 80;
+    $map_y++;
+}
 
 update_and_draw_players();
 
@@ -99,8 +111,32 @@ while ($is_running) {
     }    
 
     if ($moved) {        
-        if ($net->update_user($user->x, $user->y)) {     
+        if ($net->update_user($user->x, $user->y)) {                 
+            
+            # TODO : include all draws together
             $scr->draw($user->x, $user->y, $user->user_char);
+
+            # This could be cleaner................
+            # if y == 0, idx = x, if x = 0, idx == y * 80.. else idx = (x + 80 for each row y above) 
+            my $temp_x = $user->old_x;
+            my $temp_y = $user->old_y;
+            my $map_idx = 0;
+            if ($temp_y == 0) {
+                $map_idx = $temp_x;
+            } elsif ($temp_x == 0) {
+                $map_idx = $temp_y * 80;
+            } else {
+                $map_idx = ($temp_x + ($temp_y * 80));
+            }            
+
+            $scr->draw(1, 21, "                                                                                    ");
+            $scr->draw(1, 21, "Map idx = $map_idx old_x=".$user->old_x." old_y=".$user->old_y);
+
+            $scr->draw(
+                $user->old_x, 
+                $user->old_y, 
+                substr($map_data, $map_idx, 1)
+            );
         } else {
             $is_running = 0;
             $exit_message = "Failed send player update to server. Forced quit.";
@@ -115,7 +151,7 @@ while ($is_running) {
 }
  
 
-$scr->draw(40, 20, $exit_message);
+$scr->draw(40, 22, $exit_message);
 $inp->blocking_getch;
 
 $scr->refresh;
@@ -131,13 +167,24 @@ sub update_and_draw_players {
     foreach my $user_to_draw (keys %user_list) {    
 
         #draw a mask over inactive users and remove them from the hash.
-        #TODO : should draw ground char instead of just space.
+        
         if (!$user_list{$user_to_draw}->is_active) {   
+            
+            my $temp_x = $user_list{$user_to_draw}->x;
+            my $temp_y = $user_list{$user_to_draw}->y;
+            my $map_idx = 0;
+            if ($temp_y == 0) {
+                $map_idx = $temp_x;
+            } elsif ($temp_x == 0) {
+                $map_idx = $temp_y * 80;
+            } else {
+                $map_idx = ($temp_x + ($temp_y * 80));
+            }   
             
             $scr->draw(
                 $user_list{$user_to_draw}->x, 
-                $user_list{$user_to_draw}->y, 
-                ' '
+                $user_list{$user_to_draw}->y,                 
+                substr($map_data, $map_idx, 1)
             );
 
             delete $user_list{$user_to_draw};
@@ -150,10 +197,21 @@ sub update_and_draw_players {
                 $user_list{$user_to_draw}->user_char
             );
 
+            my $temp_x = $user_list{$user_to_draw}->old_x;
+            my $temp_y = $user_list{$user_to_draw}->old_y;
+            my $map_idx = 0;
+            if ($temp_y == 0) {
+                $map_idx = $temp_x;
+            } elsif ($temp_x == 0) {
+                $map_idx = $temp_y * 80;
+            } else {
+                $map_idx = ($temp_x + ($temp_y * 80));
+            }             
+
             $scr->draw(
                 $user_list{$user_to_draw}->old_x, 
                 $user_list{$user_to_draw}->old_y, 
-                ' '
+                substr($map_data, $map_idx, 1)
             );
         }
     } 

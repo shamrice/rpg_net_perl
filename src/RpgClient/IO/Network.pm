@@ -17,6 +17,8 @@ use constant UPDATE_USER_ENDPOINT => "/rest/user/";
 use constant GET_USERS_ENDPOINT => "/rest/users";
 use constant DELETE_USER_ENDPOINT => "/rest/user/";
 
+use constant GET_MAP_ENDPOINT => "/rest/map/";
+
 
 has user => (
     is => "rwp",
@@ -242,5 +244,34 @@ sub remove_user {
     return 1;
 
 }
+
+
+
+sub get_map {
+    my ($self, $world_id, $map_x, $map_y) = @_;
+
+    my $username = $self->user->id;    
+    my $password = $self->token;
+
+    my $url = Mojo::URL->new(SERVER_HOST.GET_MAP_ENDPOINT.$world_id."/".$map_x."/".$map_y)->userinfo("$username:$password");
+    my $response =  $self->{user_agent}->get($url)->result->json;
+
+    my $status = $response->{status};
+    my $code = $response->{code};       
+
+    if ($code != 200) {
+        say "Error getting map data: $status : $code ";
+        return 0;
+    }
+
+    my $data = $response->{data}; 
+
+    #TODO : some sort of method or service to convert digits to chars... hmm can only have 0-9 values currently...
+    $data =~ s/0/\./g;
+    $data =~ s/1/|/g;
+    
+    return $data;
+}
+
 
 1;

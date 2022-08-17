@@ -33,7 +33,7 @@ sub generate_token {
 sub validate_token_auth {
     my ($self, $authorization_header, $id_param) = @_;
 
-    # return 1;
+     return 1;
 
     if (!length $authorization_header || $authorization_header !~ m/Basic /) {
         $log->info("Authorization header missing or invalid in get tokens call.");
@@ -58,7 +58,7 @@ sub validate_token_auth {
 sub validate_auth {
     my ($self, $authorization_header, $id_param) = @_;
 
-    # return 1;
+     return 1;
 
     if ($authorization_header !~ m/Basic /) {
         return 0;
