@@ -8,16 +8,16 @@ use Moo;
 use Data::Dumper;
 
 #TODO : these should be from a configuration
-
-use constant SERVER_KEY => "B2F55FE4-B9FD-421E-8764-51CBC323E36C";
-use constant SERVER_HOST => "http://localhost:3000";
-use constant TOKEN_ENDPOINT => "/rest/token/";
-use constant ADD_USER_ENDPOINT => "/rest/user/add/";
-use constant UPDATE_USER_ENDPOINT => "/rest/user/";
-use constant GET_USERS_ENDPOINT => "/rest/users";
-use constant DELETE_USER_ENDPOINT => "/rest/user/";
-
-use constant GET_MAP_ENDPOINT => "/rest/map/";
+use constant {
+    SERVER_KEY => "B2F55FE4-B9FD-421E-8764-51CBC323E36C",
+    SERVER_HOST => "http://localhost:3000",
+    TOKEN_ENDPOINT => "/rest/token/",
+    ADD_USER_ENDPOINT => "/rest/user/add/",
+    UPDATE_USER_ENDPOINT => "/rest/user/",
+    GET_USERS_ENDPOINT => "/rest/users",
+    DELETE_USER_ENDPOINT => "/rest/user/",
+    GET_MAP_ENDPOINT => "/rest/map/"
+};
 
 
 has user => (
