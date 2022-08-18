@@ -13,8 +13,46 @@ use RpgClient::IO::Screen;
 use RpgClient::IO::Network;
 use RpgClient::User;
 use RpgClient::Map;
+use RpgClient::Engine;
+
+sub main {
+
+    print "Please enter a player name: ";
+    my $player_name = <>;
+    chomp($player_name);
+
+    print "Please enter a player token: ";
+    my $player_token = <>;
+    chomp($player_token);
 
 
+    my $user = RpgClient::User->new(name => $player_name, user_char => $player_token);
+    my %user_list = ($user->id => $user);
+
+    my $net = RpgClient::IO::Network->new(user => $user);    
+
+    my $scr = RpgClient::IO::Screen->new;
+    my $inp = RpgClient::IO::UserInput->new(screen => $scr->{screen});
+    my $map = RpgClient::Map->new(screen => $scr);
+
+    my $engine = RpgClient::Engine->new(
+        user => $user, 
+        user_list => \%user_list, 
+        net => $net, 
+        scr => $scr, 
+        inp => $inp, 
+        map => $map
+    );
+
+    $engine->init or die "Unable to initialize engine. $!\n";
+    $engine->run;
+
+    return 0;
+}
+
+exit(main());
+
+=pod
 print "Please enter a player name: ";
 my $player_name = <>;
 chomp($player_name);
@@ -172,4 +210,5 @@ sub update_and_draw_players {
         }
     } 
 }
+=cut;
 
