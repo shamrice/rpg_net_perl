@@ -2,12 +2,6 @@
 
 package RpgClient::Engine;
 
-use RpgClient::IO::UserInput;
-use RpgClient::IO::Screen;
-use RpgClient::IO::Network;
-use RpgClient::User;
-use RpgClient::Map;
-
 use feature qw(say switch);
 use Time::HiRes qw(time);
 
@@ -72,16 +66,14 @@ sub run {
     $self->map->draw_map;
 
 
-    update_and_draw_players($self);
+    $self->update_and_draw_players;
 
-    while ($is_running) {
+    while ($is_running && $self->user->is_alive) {
 
         my $char_input = $self->inp->getch;
         my $moved = 0;
 
-        if ($char_input =~ m/(?:w|a|s|d)/) {
-            my @current_position = $self->user->get_position;    
-            $self->scr->draw($current_position[0], $current_position[1], ' ');       
+        if ($char_input =~ m/(?:w|a|s|d)/) {              
             $moved = 1;      
         }
 
@@ -102,31 +94,13 @@ sub run {
                 $self->user->move(1, 0);
             }
             when ('u') {
-                my $y = 1;
-                foreach my $user (keys %{$self->user_list}) {
-                    my $current_users_str = "";
-                    $current_users_str = "id=".$self->user_list->{$user}->id;
-                    $self->scr->draw(81, $y, $current_users_str);
-                    $y++;
-                    $self->scr->draw(81, $y, "name=".$self->user_list->{$user}->name);
-                    $y++;
-                    $self->scr->draw(81, $y, "user_char=".$self->user_list->{$user}->user_char);
-                    $y++;
-                    $self->scr->draw(81, $y, "x=".$self->user_list->{$user}->x);
-                    $y++;
-                    $self->scr->draw(81, $y, "y=".$self->user_list->{$user}->y); 
-                    $y++;
-                    $self->scr->draw(81, $y, "old_x=".$self->user_list->{$user}->old_x);
-                    $y++;
-                    $self->scr->draw(81, $y, "old_y=".$self->user_list->{$user}->old_y);
-                    $y++;
-                    $self->scr->draw(81, $y, "needs_redraw=".$self->user_list->{$user}->needs_redraw);
-                    $y++;                                          
-                }     
+                $self->draw_debug_user_list;
             }
         }    
 
-        if ($moved) {        
+        if ($moved) {   
+            $self->map->handle_map_interaction($self->user);
+
             if ($self->net->update_user($self->user->x, $self->user->y)) {                 
             
                 # TODO : include all draws together
@@ -145,7 +119,13 @@ sub run {
 
         if ((time() - $polling_time) > 0.05) {                
             $polling_time = time();                
-            update_and_draw_players($self);
+            $self->update_and_draw_players;
+        }
+
+        $self->draw_player_stats;
+
+        if (!$self->user->is_alive) {
+            $self->handle_death;
         }
 
     }
@@ -198,5 +178,52 @@ sub update_and_draw_players {
     } 
 }
 
+
+sub draw_player_stats {
+    my $self = shift;
+    my %player_stats = $self->user->get_stats;
+
+    my $stat_str = "HP: " . $player_stats{current_hp} . "/" . $player_stats{max_hp} . " STATUS: " . $player_stats{status};
+
+    $self->scr->draw(1, 22, $stat_str);
+}
+
+
+sub draw_debug_user_list {
+    my $self = shift;
+    my $y = 1;
+    foreach my $user (keys %{$self->user_list}) {
+        my $current_users_str = "";
+        $current_users_str = "id=".$self->user_list->{$user}->id;
+        $self->scr->draw(81, $y, $current_users_str);
+        $y++;
+        $self->scr->draw(81, $y, "name=".$self->user_list->{$user}->name);
+        $y++;
+        $self->scr->draw(81, $y, "user_char=".$self->user_list->{$user}->user_char);
+        $y++;
+        $self->scr->draw(81, $y, "x=".$self->user_list->{$user}->x);
+        $y++;
+        $self->scr->draw(81, $y, "y=".$self->user_list->{$user}->y); 
+        $y++;
+        $self->scr->draw(81, $y, "old_x=".$self->user_list->{$user}->old_x);
+        $y++;
+        $self->scr->draw(81, $y, "old_y=".$self->user_list->{$user}->old_y);
+        $y++;
+        $self->scr->draw(81, $y, "needs_redraw=".$self->user_list->{$user}->needs_redraw);
+        $y++;                                          
+    } 
+}
+
+sub handle_death {
+    my $self = shift;
+
+    $self->scr->draw(10, 5, "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+    $self->scr->draw(10, 6, "!         Y O U     H A V E     D I E D           !");
+    $self->scr->draw(10, 7, "!                                                 !");
+    $self->scr->draw(10, 8, "!        Press any key to leave the game          !");
+    $self->scr->draw(10, 9, "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+
+    $self->inp->blocking_getch;
+}
 
 1;

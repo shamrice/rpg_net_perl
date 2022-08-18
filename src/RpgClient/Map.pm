@@ -6,6 +6,14 @@ use feature qw(say);
 
 use Moo;
 
+use constant {
+    TILE_ID_KEY => "tile_id",
+    TILE_ATTRIBUTE_KEY => "attr",
+
+    TILE_ATTRIBUTE_BLOCKING => 1,
+    TILE_ATTRIBUTE_HURT => 2
+};
+
 has screen => (
     is => 'ro',
     required => 1
@@ -24,8 +32,9 @@ sub BUILD {
 
     # TODO : load from a config? 
     $self->{map_tile_lookup} = {
-        0 => '.',
-        1 => '|'
+        0 => ' ',
+        1 => '|',
+        2 => '^'
     };
 
 }
@@ -68,8 +77,20 @@ sub draw_map {
     }
 }
 
+
 sub get_tile {
     my ($self, $x, $y) = @_;
+    my $tile_id = $self->get_tile_data($x, $y, TILE_ID_KEY);
+    return $self->map_tile_lookup->{$tile_id};
+}
+
+sub get_attribute {
+    my ($self, $x, $y) = @_;
+    return $self->get_tile_data($x, $y, TILE_ATTRIBUTE_KEY);
+}
+
+sub get_tile_data {
+    my ($self, $x, $y, $tile_key) = @_;
 
     my $sizeof_y = keys %{$self->{map_data}};
     my $sizeof_x = keys %{$self->{map_data}{0}};
@@ -78,10 +99,26 @@ sub get_tile {
         return undef;
     }
 
-    my $tile_id = $self->{map_data}->{$y}{$x}{tile_id};
-    my $tile = $self->map_tile_lookup->{$tile_id};
+    my $tile_data = $self->{map_data}->{$y}{$x}{$tile_key};    
 
-    return $tile;
+    return $tile_data;
+}
+
+
+sub handle_map_interaction {
+    my ($self, $user) = @_;
+    my $attr = $self->get_attribute($user->x, $user->y);
+    
+    if (not defined $attr) {
+        return;
+    }
+
+    if ($attr == TILE_ATTRIBUTE_BLOCKING) {
+        $user->undo_move;
+    } elsif ($attr == TILE_ATTRIBUTE_HURT) {
+        $user->update_health(-2); # magic numbers for now...
+    }
+
 }
 
 1;
