@@ -23,10 +23,10 @@ $log->info("Server starting up");
 
 # debug loading of test map...
 my @map = ( );
-
+ 
 my $map_world = 0;
 my $map_y = 0;
-my $map_x = 0;
+my $map_x = 0; 
 open(MAP_FH, '<', './RpgServer/data/maps/test.map') or die "Cannot load test map data : $!\n";
 while (<MAP_FH>) {
     my $row = $_;

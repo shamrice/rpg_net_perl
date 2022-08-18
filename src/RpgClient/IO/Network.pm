@@ -265,11 +265,7 @@ sub get_map {
     }
 
     my $data = $response->{data}; 
-
-    #TODO : some sort of method or service to convert digits to chars... hmm can only have 0-9 values currently...
-    $data =~ s/0/\./g;
-    $data =~ s/1/|/g;
-    
+   
     return $data;
 }
 

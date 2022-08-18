@@ -51,7 +51,6 @@ has id => (
 
 
 
-
 sub BUILD {
     my ($self, $args) = @_;
     if (length($self->user_char) > 1) {
