@@ -30,9 +30,14 @@ has y => (
 );
 
 has last_activity => (
-    is => 'rwp',
-    default => time()
+    is => 'rwp'
+    # default => time() # this doesn't work. It sets it to the time the server started.
 );
+
+sub BUILD {
+    my ($self, $args) = @_;
+    $self->_set_last_activity(time());
+}
 
 
 sub update {
