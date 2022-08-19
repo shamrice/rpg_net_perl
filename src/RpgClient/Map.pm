@@ -105,20 +105,25 @@ sub get_tile_data {
 }
 
 
+=pod
+    Handles user interactions with the map at their x,y coordinates.
+    Returns: true on blocking interaction otherwise, returns 1.
+=cut;
 sub handle_map_interaction {
     my ($self, $user) = @_;
     my $attr = $self->get_attribute($user->x, $user->y);
     
     if (not defined $attr) {
-        return;
+        return 0;
     }
 
     if ($attr == TILE_ATTRIBUTE_BLOCKING) {
         $user->undo_move;
+        return 1;
     } elsif ($attr == TILE_ATTRIBUTE_HURT) {
         $user->update_health(-2); # magic numbers for now...
     }
-
+    return 0;
 }
 
 1;

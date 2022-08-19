@@ -99,21 +99,21 @@ sub run {
         }    
 
         if ($moved) {   
-            $self->map->handle_map_interaction($self->user);
+            if (!$self->map->handle_map_interaction($self->user) && !$self->check_player_collision) {
 
-            if ($self->net->update_user($self->user->x, $self->user->y)) {                 
-            
-                # TODO : include all draws together
-                $self->scr->draw($self->user->x, $self->user->y, $self->user->user_char);
+                if ($self->net->update_user($self->user->x, $self->user->y)) {                             
+                    # TODO : include all draws together
+                    $self->scr->draw($self->user->x, $self->user->y, $self->user->user_char);
 
-                $self->scr->draw(
-                    $self->user->old_x, 
-                    $self->user->old_y, 
-                    $self->map->get_tile($self->user->old_x, $self->user->old_y)                
-                );
-            } else {
-                $is_running = 0;
-                $exit_message = "Failed send player update to server. Forced quit.";
+                    $self->scr->draw(
+                        $self->user->old_x, 
+                        $self->user->old_y, 
+                        $self->map->get_tile($self->user->old_x, $self->user->old_y)                
+                    );
+                } else {
+                    $is_running = 0;
+                    $exit_message = "Failed send player update to server. Forced quit.";
+                }
             }
         }
 
@@ -176,6 +176,29 @@ sub update_and_draw_players {
             );
         }
     } 
+}
+
+
+=pod 
+    Check if player collides with something other than a map
+    tile. If so, handles that collision or passes off to anther
+    sub that can.
+    Returns: true on blocking collision, otherwise false.
+=cut;
+sub check_player_collision {
+    my $self = shift;
+
+    my %user_list = %{$self->user_list};
+
+    foreach my $user_id (keys %user_list) {
+        if ($user_id ne $self->user->id) {
+            if ($self->user->x == $user_list{$user_id}->x && $self->user->y == $user_list{$user_id}->y) {      
+                $self->user->undo_move;          
+                return 1;
+            }
+        }
+    }
+    return 0;
 }
 
 
