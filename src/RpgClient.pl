@@ -31,7 +31,7 @@ sub main {
 
     my $net = RpgClient::IO::Network->new(user => $user);    
 
-    my $scr = RpgClient::IO::Screen->new;
+    my $scr = RpgClient::IO::Screen->new(use_term_colors => 1);
     my $inp = RpgClient::IO::UserInput->new(screen => $scr->{screen});
     my $map = RpgClient::Map->new(screen => $scr);
 
