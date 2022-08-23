@@ -31,6 +31,16 @@ has y => (
     default => int(rand(19)) + 1
 );
 
+has map_x => (
+    is => 'rw',
+    default => 0
+);
+
+has map_y => (
+    is => 'rw',
+    default => 0
+);
+
 has needs_redraw => (
     is => 'rw',
     default => 1

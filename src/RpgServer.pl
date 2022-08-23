@@ -30,50 +30,65 @@ my @map = ( );
 my $map_world = 0;
 my $map_y = 0;
 my $map_x = 0; 
-my $map_filename = $map_world.$map_y.$map_x.".map";
-my $map_data_raw;
-open(MAP_FH, '<', "./RpgServer/data/maps/$map_filename") or die "Cannot load test map data : $!\n";
-while (<MAP_FH>) {
-    my $row = $_;
-    chomp($row);
-    if ($row !~ m/^#.*/) {                
-        $map_data_raw .= $row;
+# my $map_filename = $map_world.$map_y.$map_x.".map";
+my @map_files = ("000.map", "001.map");
+
+foreach my $map_filename (@map_files) {
+    my $map_data_raw;
+    open(MAP_FH, '<', "./RpgServer/data/maps/$map_filename") or die "Cannot load test map data : $!\n";
+    while (<MAP_FH>) {
+        my $row = $_;
+        chomp($row);
+        if ($row !~ m/^#.*/) {                
+            $map_data_raw .= $row;
+        }   
     }
+
+    # map data is stored in memory and sent as base64 encoded LZW compressed version of the raw data to decrease response size.
+    my $compressed_map_data = compress($map_data_raw);
+    $compressed_map_data = encode_base64($compressed_map_data);
+    chomp($compressed_map_data);
+    $map[$map_world][$map_x][$map_y] = $compressed_map_data;
+
+    close(MAP_FH);
+    $map_y++; # HACK for now...
 }
 
-# map data is stored in memory and sent as base64 encoded LZW compressed version of the raw data to decrease response size.
-my $compressed_map_data = compress($map_data_raw);
-$compressed_map_data = encode_base64($compressed_map_data);
-chomp($compressed_map_data);
-$map[$map_world][$map_x][$map_y] = $compressed_map_data;
+# my $enemy_filename = "enemy_".$map_world.$map_y.$map_x.".json";
 
-close(MAP_FH);
+$map_y = 0;
 
-my $enemy_filename = "enemy_".$map_world.$map_y.$map_x.".json";
+my @enemy_files = ("enemy_000.json", "enemy_001.json");
 
-open(ENEMY_FH, '<', "./RpgServer/data/enemies/$enemy_filename") or die "Cannot load enemy data: $!\n";
-my $enemy_json_data;
-while (<ENEMY_FH>) {
-    my $row = $_;
-    chomp($row);
-    $enemy_json_data .= $row;
-}
-say "Read enemy json data: $enemy_json_data";
+foreach my $enemy_filename (@enemy_files) {
 
-my $full_data = decode_json($enemy_json_data);
-foreach my $data (@$full_data) {
-    $log->info("JSON data: $data");   
-    my $id = $data->{'id'} ;
-    my $name = $data->{'name'};
-    my $user_char = $data->{'user_char'};
-    my $x = $data->{'x'};
-    my $y = $data->{'y'};
+    open(ENEMY_FH, '<', "./RpgServer/data/enemies/$enemy_filename") or die "Cannot load enemy data: $!\n";
+    my $enemy_json_data;
+    while (<ENEMY_FH>) {
+        my $row = $_;
+        chomp($row);
+        $enemy_json_data .= $row;
+    }
+    say "Read enemy json data: $enemy_json_data";
+
+    my $full_data = decode_json($enemy_json_data);
+    foreach my $data (@$full_data) {
+        $log->info("JSON data: $data");   
+        my $id = $data->{'id'} ;
+        my $name = $data->{'name'};
+        my $user_char = $data->{'user_char'};
+        my $map_x = $data->{'map_x'};
+        my $map_y = $data->{'map_y'};
+        my $x = $data->{'x'};
+        my $y = $data->{'y'};
      
- 
-    $user_service->add_user($id, $name, $user_char, $x, $y);
-}
+  
+        $user_service->add_user($id, $name, $user_char, $map_x, $map_y, $x, $y);
+    }
 
-close(ENEMY_FH);
+    close(ENEMY_FH);
+    $map_y++;
+}
     
 post '/rest/user/add/:id' => sub {
     my $self = shift;
@@ -92,11 +107,13 @@ post '/rest/user/add/:id' => sub {
     $log->info("JSON data: $data");     
     my $name = $data->{'name'};
     my $user_char = $data->{'user_char'};
+    my $map_x = $data->{'map_x'};
+    my $map_y = $data->{'map_y'};
     my $x = $data->{'x'};
     my $y = $data->{'y'};
      
  
-    if (!$user_service->add_user($id, $name, $user_char, $x, $y)) {         
+    if (!$user_service->add_user($id, $name, $user_char, $map_x, $map_y, $x, $y)) {         
         my $error_response = {
             id => $id, 
             status => "User already added", 
@@ -138,6 +155,32 @@ get '/rest/users' => sub {
  
 };
 
+  
+get '/rest/users/:world_id/:map_x/:map_y' => sub {
+    my $self = shift;    
+    my $world_id = $self->param('world_id');
+    my $map_x = $self->param('map_x');
+    my $map_y = $self->param('map_y');
+
+    if (!$auth_service->validate_auth($self->req->headers->authorization)) {
+        my $error_response = {            
+            status => "Unauthorized",
+            code => 401
+        };  
+        return $self->render(json => $error_response, status => 401);
+    } 
+
+    my $user_list = $user_service->get_users_at($world_id, $map_x, $map_y);
+
+    my $users_response = {
+        status => "Success",        
+        code => 200,
+        users => $user_list
+    };
+
+    return $self->render(json => $users_response); 
+ 
+};
 
 
 get '/rest/user/:id' => sub {
@@ -184,10 +227,12 @@ put '/rest/user/:id' => sub {
     $log->info("JSON data: $data");     
     my $name = $data->{'name'};
     my $user_char = $data->{'user_char'};
+    my $map_x = $data->{'map_x'};
+    my $map_y = $data->{'map_y'};
     my $x = $data->{'x'};
     my $y = $data->{'y'};
 
-    if ($user_service->update_user($id, $name, $user_char, $x, $y)) {
+    if ($user_service->update_user($id, $name, $user_char, $map_x, $map_y, $x, $y)) {
         my $response = {
             userId => $id, 
             status => "Success",

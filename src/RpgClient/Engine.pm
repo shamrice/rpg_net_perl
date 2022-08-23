@@ -60,7 +60,7 @@ sub run {
     my $exit_message = "Exiting...";
 
     #debug loading and printing map data.
-    my $map_data_raw = $self->net->get_map(0, 0, 0);
+    my $map_data_raw = $self->net->get_map(0, $self->user->map_x, $self->user->map_y);
 
     $self->map->set_map_data($map_data_raw);
     $self->map->draw_map;
@@ -101,7 +101,7 @@ sub run {
         if ($moved) {   
             if (!$self->map->handle_map_interaction($self->user) && !$self->check_player_collision) {
 
-                if ($self->net->update_user($self->user->x, $self->user->y)) {                             
+                if ($self->net->update_user($self->user->map_x, $self->user->map_y, $self->user->x, $self->user->y)) {                             
                     # TODO : include all draws together
                     # TODO : Maybe get the tile as a whole as a single hash with id, attr, fg and bg colors.
                     $self->scr->draw(
@@ -152,7 +152,7 @@ sub run {
 sub update_and_draw_players {
     my $self = shift;
 
-    $self->net->get_players($self->user_list) or die "ERROR: User does not exist in current list of users";
+    $self->net->get_players(0, $self->user->map_x, $self->user->map_y, $self->user_list) or die "ERROR: User does not exist in current list of users";
 
     my %user_list = %{$self->user_list};
 
@@ -239,6 +239,10 @@ sub draw_debug_user_list {
         $self->scr->draw(81, $y, "name=".$self->user_list->{$user}->name);
         $y++;
         $self->scr->draw(81, $y, "user_char=".$self->user_list->{$user}->user_char);
+        $y++;
+        $self->scr->draw(81, $y, "map_x=".$self->user_list->{$user}->map_x);
+        $y++;
+        $self->scr->draw(81, $y, "map_y=".$self->user_list->{$user}->map_y); 
         $y++;
         $self->scr->draw(81, $y, "x=".$self->user_list->{$user}->x);
         $y++;

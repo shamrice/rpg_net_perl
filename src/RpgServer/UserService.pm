@@ -45,7 +45,7 @@ sub activity_timeout_checker {
 
 
 sub add_user {
-    my ($self, $id, $name, $user_char, $x, $y) = @_;
+    my ($self, $id, $name, $user_char, $map_x, $map_y, $x, $y) = @_;
 
     # TODO : validate that the values sent in are sane / valid.
  
@@ -53,6 +53,8 @@ sub add_user {
         id => $id, 
         name => $name, 
         user_char => $user_char, 
+        map_x => $map_x,
+        map_y => $map_y,
         x => $x, 
         y => $y
     );    
@@ -76,7 +78,7 @@ sub add_user {
 
 
 sub update_user {
-    my ($self, $id, $name, $user_char, $x, $y) = @_;
+    my ($self, $id, $name, $user_char, $map_x, $map_y, $x, $y) = @_;
     
     # TODO : validate that the values sent in are sane / valid.
 
@@ -87,7 +89,7 @@ sub update_user {
  
     $log->info("Updating user id: $id :: name: $name : user_char: $user_char : x: $x : y: $y");
        
-    $user_hash{$id}->update($x, $y, $name, $user_char);
+    $user_hash{$id}->update($map_x, $map_y, $x, $y, $name, $user_char);
     return 1;
 }
 
@@ -115,10 +117,44 @@ sub get_users {
             id => $found_user->id, 
             name => $found_user->name,
             user_char => $found_user->user_char,
+            map_x => $found_user->map_x,
+            map_y => $found_user->map_y,
             x => $found_user->x,
             y => $found_user->y
         }; 
     }
+    return $user_list;
+}
+
+
+sub get_users_at {
+    my ($self, $world_id, $map_x, $map_y) = @_;
+
+    
+    my $user_list = [ ];
+    foreach my $user_id (keys %user_hash) {
+
+        my $found_user = $user_hash{$user_id};
+
+        if ($found_user->map_x == $map_x && $found_user->map_y == $map_y) {
+
+            my $found_user_id = $found_user->id;
+            $log->info("Found user: ".$found_user->to_string);
+               
+       
+            push @$user_list, { 
+                id => $found_user->id, 
+                name => $found_user->name,
+                user_char => $found_user->user_char,
+                map_x => $found_user->map_x,
+                map_y => $found_user->map_y,
+                x => $found_user->x,
+                y => $found_user->y
+            }; 
+        }
+    }
+
+    $log->info("At: $world_id, $map_x, $map_y :: Current number of found users: ".(scalar @$user_list));
     return $user_list;
 }
 
@@ -135,6 +171,8 @@ sub get_user {
         id => $found_user->id,
         name => $found_user->name,
         user_char => $found_user->user_char,
+        map_x => $found_user->map_x,
+        map_y => $found_user->map_y,
         x => $found_user->x,
         y => $found_user->y
     };

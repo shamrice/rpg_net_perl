@@ -3,6 +3,8 @@
         "id": "0E6B4F0D-0624-3EFB-BB86-66D55AADED58",
         "name": "SNAKE",
         "user_char": "&",
+        "map_x": 0,
+        "map_y": 0,
         "x": 70,
         "y": 6
     },
@@ -10,6 +12,8 @@
         "id": "FB0990D7-548C-3D64-A46F-F70A3A3C919E",
         "name": "GHOUL",
         "user_char": "@",
+        "map_x": 0,
+        "map_y": 0,
         "x": 4,
         "y": 13
     }

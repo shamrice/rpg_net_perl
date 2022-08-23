@@ -81,6 +81,8 @@ sub add_user {
         id => $self->{user}->id,
         name => $self->{user}->name,
         user_char => $self->{user}->user_char,
+        map_x => $self->{user}->map_x,
+        map_y => $self->{user}->map_y,
         x => $self->{user}->x,
         y => $self->{user}->y
     };
@@ -104,7 +106,7 @@ sub add_user {
 
 
 sub update_user {
-    my ($self, $x, $y, $name, $user_char) = @_;
+    my ($self, $map_x, $map_y, $x, $y, $name, $user_char) = @_;
 
     my $username = $self->user->id;
     my $password = $self->token;
@@ -115,16 +117,22 @@ sub update_user {
         id => $self->{user}->id
     };
 
+    if (defined $map_x) {
+        $req_body->{map_x} = $map_x;
+    }
+    if (defined $map_y) {
+        $req_body->{y} = $map_y;
+    }
     if (defined $x) {
         $req_body->{x} = $x;
     }
-    if (defined $x) {
+    if (defined $y) {
         $req_body->{y} = $y;
     }
-    if (defined $x) {
+    if (defined $name) {
         $req_body->{name} = $name;
     }
-    if (defined $x) {
+    if (defined $user_char) {
         $req_body->{user_char} = $user_char;
     }
 
@@ -145,12 +153,12 @@ sub update_user {
 
 
 sub get_players {
-    my ($self, $current_player_list) = @_;
+    my ($self, $world_id, $map_x, $map_y, $current_player_list) = @_;
 
     my $username = $self->user->id;    
     my $password = $self->token;
 
-    my $url = Mojo::URL->new(SERVER_HOST.GET_USERS_ENDPOINT)->userinfo("$username:$password");
+    my $url = Mojo::URL->new(SERVER_HOST.GET_USERS_ENDPOINT."/".$world_id."/".$map_x."/".$map_y)->userinfo("$username:$password");
     my $response =  $self->{user_agent}->get($url)->result->json;
 
     my $status = $response->{status};
@@ -192,6 +200,8 @@ sub get_players {
             $user_to_update = RpgClient::User->new(              
                 name => $user->{name},
                 user_char => $user->{user_char},
+                map_x => $user->{map_x},
+                map_y => $user->{map_y},
                 x => $user->{x},
                 y => $user->{y},
                 old_x => $old_x,
@@ -205,6 +215,8 @@ sub get_players {
 
             my $needs_redraw = ($old_x != $user->{x} || $old_y != $user->{y});
 
+            $user_to_update->map_x($user->{map_x});
+            $user_to_update->map_y($user->{map_y});
             $user_to_update->x($user->{x});
             $user_to_update->y($user->{y});
             $user_to_update->_set_old_x($old_x);

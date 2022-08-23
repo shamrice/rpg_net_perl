@@ -15,7 +15,8 @@ use constant {
     TILE_BACKGROUND_COLOR_KEY => "bg_color",
 
     TILE_ATTRIBUTE_BLOCKING => 1,
-    TILE_ATTRIBUTE_HURT => 2
+    TILE_ATTRIBUTE_HURT => 2,
+    TILE_ATTRIBUTE_DEATH => 3
 };
 
 has screen => (
@@ -47,7 +48,7 @@ sub set_map_data {
     my ($self, $map_data_raw) = @_;
 
     # map data is base64 encoded & LZW compressed. Need to convert to raw string data.
-    my $map_data_raw = decode_base64($map_data_raw);
+    $map_data_raw = decode_base64($map_data_raw);
     $map_data_raw = decompress($map_data_raw);
 
     my @map_rows = split("!", $map_data_raw);
@@ -144,6 +145,8 @@ sub handle_map_interaction {
         return 1;
     } elsif ($attr == TILE_ATTRIBUTE_HURT) {
         $user->update_health(-2); # magic numbers for now...
+    } elsif ($attr == TILE_ATTRIBUTE_DEATH) {
+        $user->update_health(-999999); # magic numbers for now...
     }
     return 0;
 }
