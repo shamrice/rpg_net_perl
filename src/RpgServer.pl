@@ -4,6 +4,8 @@ package RpgServer;
 use Mojolicious::Lite; 
 use Mojo::JSON qw(encode_json decode_json);
 use feature qw(say);
+use Compress::LZW;
+use MIME::Base64;
 
 use RpgServer::AuthorizationService; 
 use RpgServer::UserService; 
@@ -28,14 +30,22 @@ my @map = ( );
 my $map_world = 0;
 my $map_y = 0;
 my $map_x = 0; 
+my $map_data_raw;
 open(MAP_FH, '<', './RpgServer/data/maps/test.map') or die "Cannot load test map data : $!\n";
 while (<MAP_FH>) {
     my $row = $_;
     chomp($row);
-    if ($row !~ m/^#.*/) {
-        $map[$map_world][$map_x][$map_y] .= $row;    
+    if ($row !~ m/^#.*/) {                
+        $map_data_raw .= $row;
     }
 }
+
+# map data is stored in memory and sent as base64 encoded LZW compressed version of the raw data to decrease response size.
+my $compressed_map_data = compress($map_data_raw);
+$compressed_map_data = encode_base64($compressed_map_data);
+chomp($compressed_map_data);
+$map[$map_world][$map_x][$map_y] = $compressed_map_data;
+
 close(MAP_FH);
   
     
@@ -228,7 +238,7 @@ get '/rest/map/:world_id/:x/:y' => sub {
 
     my $world_data_response = {
         status => "Success",
-        code => 200,
+        code => 200,        
         data => $map[$world_id][$world_x][$world_y]
     };
 

@@ -3,6 +3,8 @@
 package RpgClient::Map;
 
 use feature qw(say);
+use Compress::LZW;
+use MIME::Base64;
 
 use Moo;
 
@@ -43,6 +45,10 @@ sub BUILD {
 
 sub set_map_data {
     my ($self, $map_data_raw) = @_;
+
+    # map data is base64 encoded & LZW compressed. Need to convert to raw string data.
+    my $map_data_raw = decode_base64($map_data_raw);
+    $map_data_raw = decompress($map_data_raw);
 
     my @map_rows = split("!", $map_data_raw);
     my $map_y = 0;
