@@ -22,6 +22,7 @@ $log->info("Server starting up");
 
 
 # debug loading of test map...
+# TODO : move this into its own module.
 my @map = ( );
  
 my $map_world = 0;
@@ -31,10 +32,12 @@ open(MAP_FH, '<', './RpgServer/data/maps/test.map') or die "Cannot load test map
 while (<MAP_FH>) {
     my $row = $_;
     chomp($row);
-    $map[$map_world][$map_x][$map_y] .= $row;    
+    if ($row !~ m/^#.*/) {
+        $map[$map_world][$map_x][$map_y] .= $row;    
+    }
 }
 close(MAP_FH);
-
+  
     
 post '/rest/user/add/:id' => sub {
     my $self = shift;

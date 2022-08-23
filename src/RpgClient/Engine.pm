@@ -103,12 +103,21 @@ sub run {
 
                 if ($self->net->update_user($self->user->x, $self->user->y)) {                             
                     # TODO : include all draws together
-                    $self->scr->draw($self->user->x, $self->user->y, $self->user->user_char);
+                    # TODO : Maybe get the tile as a whole as a single hash with id, attr, fg and bg colors.
+                    $self->scr->draw(
+                        $self->user->x, 
+                        $self->user->y, 
+                        $self->user->user_char,
+                        9,
+                        $self->map->get_background_color($self->user->x, $self->user->y)
+                    );
 
                     $self->scr->draw(
                         $self->user->old_x, 
                         $self->user->old_y, 
-                        $self->map->get_tile($self->user->old_x, $self->user->old_y)                
+                        $self->map->get_tile($self->user->old_x, $self->user->old_y),
+                        $self->map->get_foreground_color($self->user->old_x, $self->user->old_y),                      
+                        $self->map->get_background_color($self->user->old_x, $self->user->old_y)
                     );
                 } else {
                     $is_running = 0;
@@ -151,12 +160,15 @@ sub update_and_draw_players {
 
         #draw a mask over inactive users and remove them from the hash.
         
+        #TODO : get single tile hash that includes the tile, fg, and bg colors instead of making 3 calls to map.
         if (!$user_list{$user_to_draw}->is_active) {   
                         
             $self->scr->draw(
                 $user_list{$user_to_draw}->x, 
                 $user_list{$user_to_draw}->y,                 
-                $self->map->get_tile($user_list{$user_to_draw}->x, $user_list{$user_to_draw}->y)
+                $self->map->get_tile($user_list{$user_to_draw}->x, $user_list{$user_to_draw}->y),
+                $self->map->get_foreground_color($user_list{$user_to_draw}->x, $user_list{$user_to_draw}->y),                      
+                $self->map->get_background_color($user_list{$user_to_draw}->x, $user_list{$user_to_draw}->y)
             );
 
             delete $user_list{$user_to_draw};
@@ -166,13 +178,17 @@ sub update_and_draw_players {
             $self->scr->draw(
                 $user_list{$user_to_draw}->x, 
                 $user_list{$user_to_draw}->y, 
-                $user_list{$user_to_draw}->user_char
+                $user_list{$user_to_draw}->user_char,         
+                15,                     
+                $self->map->get_background_color($user_list{$user_to_draw}->x, $user_list{$user_to_draw}->y)                
             );                    
 
             $self->scr->draw(
                 $user_list{$user_to_draw}->old_x, 
                 $user_list{$user_to_draw}->old_y, 
-                $self->map->get_tile($user_list{$user_to_draw}->old_x, $user_list{$user_to_draw}->old_y)
+                $self->map->get_tile($user_list{$user_to_draw}->old_x, $user_list{$user_to_draw}->old_y),
+                $self->map->get_foreground_color($user_list{$user_to_draw}->old_x, $user_list{$user_to_draw}->old_y),                      
+                $self->map->get_background_color($user_list{$user_to_draw}->old_x, $user_list{$user_to_draw}->old_y)
             );
         }
     } 

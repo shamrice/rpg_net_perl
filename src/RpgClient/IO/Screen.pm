@@ -9,12 +9,16 @@ use Moo;
 
 use constant {
     TERMINAL_COLOR_PREFIX => "\033[",
+    TERMINAL_COLOR_FG_START => "38;5;",
+    TERMINAL_COLOR_BG_START => "48;5;",
     TERMINAL_COLOR_SUFFIX => "m",
     TERMINAL_COLOR_RESET => "\033[0m"
 };
 
 =pod 
-    Terminal escape sequence reference: https://stackoverflow.com/questions/4842424/list-of-ansi-color-escape-sequences
+    Terminal escape sequence reference: 
+        https://en.wikipedia.org/wiki/ANSI_escape_code
+        https://stackoverflow.com/questions/4842424/list-of-ansi-color-escape-sequences
 =cut
 
 has screen => (
@@ -95,12 +99,19 @@ sub draw {
 
     if ($self->use_term_colors) {
         if (not defined $fg_color) {
-            $fg_color = $self->color_map->{FG_WHITE};
-        }
+            $fg_color = 7; # $self->color_map->{FG_WHITE};
+        } #else {
+           # $fg_color = $self->color_map->{$fg_color}; 
+        #}
         if (not defined $bg_color) {
-            $bg_color = $self->color_map->{BG_BLACK};
-        }
-        my $color_str = TERMINAL_COLOR_PREFIX . $fg_color . ";" . $bg_color . TERMINAL_COLOR_SUFFIX;
+            $bg_color = 0; # $self->color_map->{BG_BLACK};
+        } #else {
+          #  $bg_color = $self->color_map->{$bg_color};
+       # }
+        my $color_str = TERMINAL_COLOR_PREFIX . 
+            TERMINAL_COLOR_FG_START . $fg_color . ";" . 
+            TERMINAL_COLOR_BG_START . $bg_color . 
+            TERMINAL_COLOR_SUFFIX;
 
         $self->screen->puts($color_str.$text.TERMINAL_COLOR_RESET);
 

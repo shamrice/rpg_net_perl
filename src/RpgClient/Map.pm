@@ -9,6 +9,8 @@ use Moo;
 use constant {
     TILE_ID_KEY => "tile_id",
     TILE_ATTRIBUTE_KEY => "attr",
+    TILE_FOREGROUND_COLOR_KEY => "fg_color",
+    TILE_BACKGROUND_COLOR_KEY => "bg_color",
 
     TILE_ATTRIBUTE_BLOCKING => 1,
     TILE_ATTRIBUTE_HURT => 2
@@ -51,11 +53,13 @@ sub set_map_data {
         my $map_x = 0;
         foreach my $x_data (@row_data) {
             # say "x b = $x_data";
-            my ($draw_value, $attr_value) = split(",", $x_data);
+            my ($draw_value, $attr_value, $fg_color, $bg_color) = split(",", $x_data);
             # say "dv av = $draw_value $attr_value";
             $self->{map_data}->{$map_y}{$map_x} = {
                 tile_id => $draw_value,
-                attr => $attr_value
+                attr => $attr_value,
+                fg_color => $fg_color,
+                bg_color => $bg_color
             };        
             $map_x++;
         }
@@ -72,11 +76,23 @@ sub draw_map {
             my $tile_id = $self->{map_data}->{$y}{$x}{tile_id};
             my $tile = $self->map_tile_lookup->{$tile_id};
 
-            $self->screen->draw($x, $y, $tile);           
+            my $fg_color = $self->{map_data}->{$y}{$x}{fg_color};
+            my $bg_color = $self->{map_data}->{$y}{$x}{bg_color};
+
+            $self->screen->draw($x, $y, $tile, $fg_color, $bg_color);           
         }
     }
 }
 
+sub get_background_color {
+    my ($self, $x, $y) = @_;
+    return $self->get_tile_data($x, $y, TILE_BACKGROUND_COLOR_KEY);
+}
+
+sub get_foreground_color {
+    my ($self, $x, $y) = @_;
+    return $self->get_tile_data($x, $y, TILE_FOREGROUND_COLOR_KEY);
+}
 
 sub get_tile {
     my ($self, $x, $y) = @_;
