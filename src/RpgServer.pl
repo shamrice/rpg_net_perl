@@ -30,8 +30,9 @@ my @map = ( );
 my $map_world = 0;
 my $map_y = 0;
 my $map_x = 0; 
+my $map_filename = $map_world.$map_y.$map_x.".map";
 my $map_data_raw;
-open(MAP_FH, '<', './RpgServer/data/maps/test.map') or die "Cannot load test map data : $!\n";
+open(MAP_FH, '<', "./RpgServer/data/maps/$map_filename") or die "Cannot load test map data : $!\n";
 while (<MAP_FH>) {
     my $row = $_;
     chomp($row);
@@ -47,7 +48,32 @@ chomp($compressed_map_data);
 $map[$map_world][$map_x][$map_y] = $compressed_map_data;
 
 close(MAP_FH);
-  
+
+my $enemy_filename = "enemy_".$map_world.$map_y.$map_x.".json";
+
+open(ENEMY_FH, '<', "./RpgServer/data/enemies/$enemy_filename") or die "Cannot load enemy data: $!\n";
+my $enemy_json_data;
+while (<ENEMY_FH>) {
+    my $row = $_;
+    chomp($row);
+    $enemy_json_data .= $row;
+}
+say "Read enemy json data: $enemy_json_data";
+
+my $full_data = decode_json($enemy_json_data);
+foreach my $data (@$full_data) {
+    $log->info("JSON data: $data");   
+    my $id = $data->{'id'} ;
+    my $name = $data->{'name'};
+    my $user_char = $data->{'user_char'};
+    my $x = $data->{'x'};
+    my $y = $data->{'y'};
+     
+ 
+    $user_service->add_user($id, $name, $user_char, $x, $y);
+}
+
+close(ENEMY_FH);
     
 post '/rest/user/add/:id' => sub {
     my $self = shift;

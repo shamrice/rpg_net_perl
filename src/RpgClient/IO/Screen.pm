@@ -7,6 +7,7 @@ require Term::Screen;
 use feature qw(say);
 use Moo;
 
+
 use constant {
     TERMINAL_COLOR_PREFIX => "\033[",
     TERMINAL_COLOR_FG_START => "38;5;",
@@ -31,9 +32,6 @@ has use_term_colors => (
     default => 0
 );
 
-has color_map => (
-    is => 'rwp'
-);
 
 sub BUILD {
     my ($self, $ags) = @_;
@@ -41,45 +39,6 @@ sub BUILD {
     unless ($scr) { die "Something when wrong $!\n"; }
     $self->_set_screen($scr);
     $self->screen->noecho;
-
-    my %color_map = (
-        FG_BLACK => 30,
-        FG_RED => 31,
-        FG_GREEN => 32,
-        FG_YELLOW => 33,
-        FG_BLUE => 34,
-        FG_MAGENTA => 35,
-        FG_CYAN => 36,
-        FG_WHITE => 37,
-        FG_BRIGHT_BLACK => 90,
-        FG_BRIGHT_RED => 91,
-        FG_BRIGHT_GREEN => 92,
-        FG_BRIGHT_YELLOW => 93,
-        FG_BRIGHT_BLUE => 94,
-        FG_BRIGHT_MAGENTA => 95,
-        FG_BRIGHT_CYAN => 96,
-        FG_BRIGHT_WHITE => 97,
-
-        BG_BLACK => 40,
-        BG_RED => 41,
-        BG_GREEN => 42,
-        BG_YELLOW => 43,
-        BG_BLUE => 44,
-        BG_MAGENTA => 45,
-        BG_CYAN => 46,
-        BG_WHITE => 47,
-        BG_BRIGHT_BLACK => 100,
-        BG_BRIGHT_RED => 101,
-        BG_BRIGHT_GREEN => 102,
-        BG_BRIGHT_YELLOW => 103,
-        BG_BRIGHT_BLUE => 104,
-        BG_BRIGHT_MAGENTA => 105,
-        BG_BRIGHT_CYAN => 106,
-        BG_BRIGHT_WHITE => 107,
-        
-    );
-
-    $self->_set_color_map(\%color_map);
 }
 
 
@@ -91,23 +50,18 @@ sub refresh {
 
 sub draw {
 
-    # TODO : Use ANSI color codes to display text in color provided. 
-
+   
     my ($self, $x, $y, $text, $fg_color, $bg_color) = @_;
 
     $self->screen->at($y, $x);    
 
     if ($self->use_term_colors) {
         if (not defined $fg_color) {
-            $fg_color = 7; # $self->color_map->{FG_WHITE};
-        } #else {
-           # $fg_color = $self->color_map->{$fg_color}; 
-        #}
+            $fg_color = 7; 
+        } 
         if (not defined $bg_color) {
-            $bg_color = 0; # $self->color_map->{BG_BLACK};
-        } #else {
-          #  $bg_color = $self->color_map->{$bg_color};
-       # }
+            $bg_color = 0; 
+        } 
         my $color_str = TERMINAL_COLOR_PREFIX . 
             TERMINAL_COLOR_FG_START . $fg_color . ";" . 
             TERMINAL_COLOR_BG_START . $bg_color . 
@@ -118,9 +72,6 @@ sub draw {
     } else {
         $self->screen->puts($text);
     }
-
-
-    
     
     # $scr->at(10, 6)->bold()->puts("hi!")->normal();
 }
