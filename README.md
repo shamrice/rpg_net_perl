@@ -7,11 +7,14 @@ There isn't much here yet. Once things start moving along (**IF** they do) this 
 ## Perl CPAN packages required
 This list may change on the fly...
 * [Mojolicious](https://metacpan.org/pod/Mojolicious)
+* [Mojo::UserAgent](https://metacpan.org/pod/Mojo::UserAgent)
+* [Mojo::JSON](https://metacpan.org/pod/Mojo::JSON)
 * [Moo](https://metacpan.org/pod/Moo)
 * [Data::UUID](https://metacpan.org/pod/Data::UUID)
 * [Term::Screen](https://metacpan.org/pod/Term::Screen)
 * [Time::HiRes](https://metacpan.org/pod/Time::HiRes)
 * [Mime::Base64](https://metacpan.org/pod/MIME::Base64)
+* [Compress::LZW](https://metacpan.org/pod/Compress::LZW)
 
 
 ## Running test server
