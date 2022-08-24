@@ -70,7 +70,7 @@ foreach my $enemy_filename (@enemy_files) {
         $enemy_json_data .= $row;
     }
     say "Read enemy json data: $enemy_json_data";
-
+ 
     my $full_data = decode_json($enemy_json_data);
     foreach my $data (@$full_data) {
         $log->info("JSON data: $data");   
@@ -81,11 +81,11 @@ foreach my $enemy_filename (@enemy_files) {
         my $map_y = $data->{'map_y'};
         my $x = $data->{'x'};
         my $y = $data->{'y'};
-     
+    
   
         $user_service->add_user($id, $name, $user_char, $map_x, $map_y, $x, $y);
     }
-
+  
     close(ENEMY_FH);
     $map_y++;
 }
@@ -296,7 +296,7 @@ get '/rest/map/:world_id/:x/:y' => sub {
         };  
         return $self->render(json => $error_response, status => 401);
     }   
-
+ 
     if (!exists($map[$world_id][$world_x][$world_y])) {
         $log->info("Map data not found at $world_id, $world_x, $world_y");
         my $data_not_found = {
@@ -306,6 +306,8 @@ get '/rest/map/:world_id/:x/:y' => sub {
 
         return $self->render(json => $data_not_found, status => 404);
     }
+
+    $log->info("Returning raw map data: ".$map[$world_id][$world_x][$world_y]);
 
     my $world_data_response = {
         status => "Success",

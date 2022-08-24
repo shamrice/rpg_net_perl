@@ -49,9 +49,11 @@ sub refresh {
 
 
 sub draw {
-
-   
     my ($self, $x, $y, $text, $fg_color, $bg_color) = @_;
+
+    if (not defined $text) {
+        return;
+    }
 
     $self->screen->at($y, $x);    
 

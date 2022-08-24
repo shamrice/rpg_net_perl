@@ -8,7 +8,7 @@ use Moo;
 use constant {
     STATUS_ALIVE =>    "ALIVE   ",
     STATUS_DEAD =>     "DEAD    ",
-    STATUS_POISONED => "POISONED"
+    STATUS_POISONED => "POISONED",
 };
 
 has name => (
@@ -42,6 +42,11 @@ has map_y => (
 );
 
 has needs_redraw => (
+    is => 'rw',
+    default => 1
+);
+
+has needs_map_load => (
     is => 'rw',
     default => 1
 );
@@ -106,7 +111,7 @@ sub move {
     $self->_set_old_x($self->x);
     $self->_set_old_y($self->y);    
     $self->x($self->x + $x_delta);
-    $self->y($self->y + $y_delta);
+    $self->y($self->y + $y_delta);    
     $self->needs_redraw(1);
     $self->is_active(1);
 }
@@ -157,5 +162,6 @@ sub is_alive {
     my $self = shift;
     return $self->status eq STATUS_ALIVE;
 }
+
 
 1;

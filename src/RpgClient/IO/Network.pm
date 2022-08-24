@@ -121,7 +121,7 @@ sub update_user {
         $req_body->{map_x} = $map_x;
     }
     if (defined $map_y) {
-        $req_body->{y} = $map_y;
+        $req_body->{map_y} = $map_y;
     }
     if (defined $x) {
         $req_body->{x} = $x;

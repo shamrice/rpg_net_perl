@@ -87,7 +87,7 @@ sub update_user {
         return 0;        
     }
  
-    $log->info("Updating user id: $id :: name: $name : user_char: $user_char : x: $x : y: $y");
+    $log->info("Updating user id: $id :: map_x: $map_x : map_y: $map_y : x: $x : y: $y name: $name : user_char: $user_char ");
        
     $user_hash{$id}->update($map_x, $map_y, $x, $y, $name, $user_char);
     return 1;

@@ -59,11 +59,7 @@ sub run {
 
     my $exit_message = "Exiting...";
 
-    #debug loading and printing map data.
-    my $map_data_raw = $self->net->get_map(0, $self->user->map_x, $self->user->map_y);
-
-    $self->map->set_map_data($map_data_raw);
-    $self->map->draw_map;
+    $self->load_current_map;
 
 
     $self->update_and_draw_players;
@@ -99,9 +95,16 @@ sub run {
         }    
 
         if ($moved) {   
-            if (!$self->map->handle_map_interaction($self->user) && !$self->check_player_collision) {
+            
+            if (!$self->map->handle_map_interaction($self->user) && !$self->check_player_collision) {                               
 
-                if ($self->net->update_user($self->user->map_x, $self->user->map_y, $self->user->x, $self->user->y)) {                             
+                if ($self->user->needs_map_load) {                
+                    $self->load_current_map;
+                } 
+
+                if ($self->net->update_user($self->user->map_x, $self->user->map_y, $self->user->x, $self->user->y)) {
+                    
+
                     # TODO : include all draws together
                     # TODO : Maybe get the tile as a whole as a single hash with id, attr, fg and bg colors.
                     $self->scr->draw(
@@ -119,6 +122,8 @@ sub run {
                         $self->map->get_foreground_color($self->user->old_x, $self->user->old_y),                      
                         $self->map->get_background_color($self->user->old_x, $self->user->old_y)
                     );
+                    
+
                 } else {
                     $is_running = 0;
                     $exit_message = "Failed send player update to server. Forced quit.";
@@ -126,7 +131,7 @@ sub run {
             }
         }
 
-        if ((time() - $polling_time) > 0.05) {                
+        if ((time() - $polling_time) > 1 ) { # 0.05) {                
             $polling_time = time();                
             $self->update_and_draw_players;
         }
@@ -152,9 +157,10 @@ sub run {
 sub update_and_draw_players {
     my $self = shift;
 
-    $self->net->get_players(0, $self->user->map_x, $self->user->map_y, $self->user_list) or die "ERROR: User does not exist in current list of users";
+    $self->net->get_players(0, $self->user->map_x, $self->user->map_y, $self->user_list); # or die "ERROR: User does not exist in current list of users";
 
     my %user_list = %{$self->user_list};
+   
 
     foreach my $user_to_draw (keys %user_list) {    
 
@@ -267,6 +273,32 @@ sub handle_death {
     $self->scr->draw(10, 9, "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
 
     $self->inp->blocking_getch;
+}
+
+
+#TODO : maybe a better name as its loading and drawing?
+sub load_current_map {
+    my $self = shift;
+
+    my $map_data_raw = $self->net->get_map(0, $self->user->map_x, $self->user->map_y);   
+    
+    $self->map->set_map_data($map_data_raw);
+    $self->map->draw_map;  
+
+    # Reset player list for the location and get fresh.
+    $self->user_list({ });
+    $self->update_and_draw_players;
+
+    $self->scr->draw(
+        $self->user->x, 
+        $self->user->y, 
+        $self->user->user_char,
+        9,
+        $self->map->get_background_color($self->user->x, $self->user->y)
+    );  
+
+    $self->user->needs_map_load(0);
+
 }
 
 1;

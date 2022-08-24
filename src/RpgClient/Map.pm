@@ -5,10 +5,14 @@ package RpgClient::Map;
 use feature qw(say);
 use Compress::LZW;
 use MIME::Base64;
+use Carp;
 
 use Moo;
 
 use constant {
+    MAP_VERTICAL_MAX => 20,
+    MAP_HORIZONTAL_MAX => 80,
+
     TILE_ID_KEY => "tile_id",
     TILE_ATTRIBUTE_KEY => "attr",
     TILE_FOREGROUND_COLOR_KEY => "fg_color",
@@ -77,16 +81,27 @@ sub set_map_data {
 sub draw_map {
     my $self = shift;
 
+   
     foreach my $y (keys %{$self->{map_data}}) {
         foreach my $x (keys %{$self->{map_data}{0}}) {
             
             my $tile_id = $self->{map_data}->{$y}{$x}{tile_id};
-            my $tile = $self->map_tile_lookup->{$tile_id};
 
-            my $fg_color = $self->{map_data}->{$y}{$x}{fg_color};
-            my $bg_color = $self->{map_data}->{$y}{$x}{bg_color};
+            #if for some reason tile_id is called at an unset x,y. die with confession.
+            if (defined $tile_id) {
+                my $tile = $self->map_tile_lookup->{$tile_id};
 
-            $self->screen->draw($x, $y, $tile, $fg_color, $bg_color);           
+                my $fg_color = $self->{map_data}->{$y}{$x}{fg_color};
+                my $bg_color = $self->{map_data}->{$y}{$x}{bg_color};
+
+                $self->screen->draw($x, $y, $tile, $fg_color, $bg_color);           
+            } else {
+                my $key_str = "";
+                foreach my $key (keys %{$self->{map_data}}) {
+                    $key_str .= " $key,";
+                }
+                confess "TILE ID NOT DEFINED AT: $y,$x Y keys=$key_str";
+            }
         }
     }
 }
@@ -115,6 +130,14 @@ sub get_attribute {
 sub get_tile_data {
     my ($self, $x, $y, $tile_key) = @_;
 
+    # don't call out of bounds or will cause autovivication of that invalid range. Hard stop for now.
+    if ($y < 0 || $y > MAP_VERTICAL_MAX) {
+        confess "Attempted to get out of bounds y tile: $y!";
+    }
+    if ($x < 0 || $x > MAP_HORIZONTAL_MAX) {
+        confess "Attempted to get out of bounds x tile: $x!";
+    }
+
     my $sizeof_y = keys %{$self->{map_data}};
     my $sizeof_x = keys %{$self->{map_data}{0}};
 
@@ -129,11 +152,37 @@ sub get_tile_data {
 
 
 =pod
+    TODO: Code smell updating user in the map module...
     Handles user interactions with the map at their x,y coordinates.
     Returns: true on blocking interaction otherwise, returns 1.
 =cut;
 sub handle_map_interaction {
     my ($self, $user) = @_;
+
+    if ($user->y >= MAP_VERTICAL_MAX) {
+        $user->map_y($user->map_y + 1);
+        $user->y(1);
+        #$user->_set_old_y(1);
+        $user->needs_map_load(1);
+        return 0;
+    } elsif ($user->y < 0) {
+        $user->map_y($user->map_y - 1);
+        $user->y(MAP_VERTICAL_MAX - 2);
+        #$user->_set_old_y(MAP_VERTICAL_MAX - 2);
+        $user->needs_map_load(1);
+        return 0;
+    } elsif ($user->x >= MAP_HORIZONTAL_MAX) {
+        $user->map_x($user->map_x + 1);
+        $user->x(1);        
+        $user->needs_map_load(1);
+        return 0;
+    } elsif ($user->x < 0) {
+        $user->map_x($user->map_x - 1);
+        $user->y(MAP_HORIZONTAL_MAX - 2);        
+        $user->needs_map_load(1);
+        return 0;
+    } 
+    
     my $attr = $self->get_attribute($user->x, $user->y);
     
     if (not defined $attr) {
