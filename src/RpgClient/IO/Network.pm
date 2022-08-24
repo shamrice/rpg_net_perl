@@ -6,6 +6,7 @@ use Data::UUID;
 use feature qw(say);
 use Moo;
 use Data::Dumper;
+use Carp;
 
 #TODO : these should be from a configuration
 use constant {
@@ -272,7 +273,7 @@ sub get_map {
     my $code = $response->{code};       
 
     if ($code != 200) {
-        say "Error getting map data: $status : $code ";
+        confess "Error getting map data: $status : $code " . Dumper \$response;
         return 0;
     }
 

@@ -31,7 +31,7 @@ my $map_world = 0;
 my $map_y = 0;
 my $map_x = 0; 
 # my $map_filename = $map_world.$map_y.$map_x.".map";
-my @map_files = ("000.map", "001.map");
+my @map_files = ("000.map", "001.map", "010.map");
 
 foreach my $map_filename (@map_files) {
     my $map_data_raw;
@@ -41,9 +41,13 @@ foreach my $map_filename (@map_files) {
         chomp($row);
         if ($row !~ m/^#.*/) {                
             $map_data_raw .= $row;
-        }   
+        }  
     }
 
+    $map_x = int(substr($map_filename, 1, 1));
+    $map_y = int(substr($map_filename, 2, 1));
+    say "filename: $map_filename map xy: $map_x,$map_y";
+    
     # map data is stored in memory and sent as base64 encoded LZW compressed version of the raw data to decrease response size.
     my $compressed_map_data = compress($map_data_raw);
     $compressed_map_data = encode_base64($compressed_map_data);
@@ -51,7 +55,7 @@ foreach my $map_filename (@map_files) {
     $map[$map_world][$map_x][$map_y] = $compressed_map_data;
 
     close(MAP_FH);
-    $map_y++; # HACK for now...
+  
 }
 
 # my $enemy_filename = "enemy_".$map_world.$map_y.$map_x.".json";
@@ -86,8 +90,7 @@ foreach my $enemy_filename (@enemy_files) {
         $user_service->add_user($id, $name, $user_char, $map_x, $map_y, $x, $y);
     }
   
-    close(ENEMY_FH);
-    $map_y++;
+    close(ENEMY_FH);  
 }
     
 post '/rest/user/add/:id' => sub {
@@ -249,7 +252,6 @@ put '/rest/user/:id' => sub {
     }
 
 };
-
 
  
 del '/rest/user/:id' => sub {

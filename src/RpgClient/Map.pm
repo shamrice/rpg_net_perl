@@ -132,10 +132,10 @@ sub get_tile_data {
 
     # don't call out of bounds or will cause autovivication of that invalid range. Hard stop for now.
     if ($y < 0 || $y > MAP_VERTICAL_MAX) {
-        confess "Attempted to get out of bounds y tile: $y!";
+        confess "Attempted to get out of bounds y tile: $y";
     }
     if ($x < 0 || $x > MAP_HORIZONTAL_MAX) {
-        confess "Attempted to get out of bounds x tile: $x!";
+        confess "Attempted to get out of bounds x tile: $x";
     }
 
     my $sizeof_y = keys %{$self->{map_data}};
@@ -178,7 +178,7 @@ sub handle_map_interaction {
         return 0;
     } elsif ($user->x < 0) {
         $user->map_x($user->map_x - 1);
-        $user->y(MAP_HORIZONTAL_MAX - 2);        
+        $user->x(MAP_HORIZONTAL_MAX - 2);        
         $user->needs_map_load(1);
         return 0;
     } 
