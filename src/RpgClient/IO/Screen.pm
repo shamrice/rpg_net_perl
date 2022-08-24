@@ -38,6 +38,7 @@ sub BUILD {
     my $scr = Term::Screen->new();
     unless ($scr) { die "Something when wrong $!\n"; }
     $self->_set_screen($scr);
+    $self->screen->curinvis;
     $self->screen->noecho;
 }
 
@@ -47,6 +48,24 @@ sub refresh {
     $self->screen->clrscr();
 }
 
+
+sub clear_line {
+    my ($self, $row) = @_;
+
+    $self->screen->at($row, 1);
+    $self->screen->clreos;
+}
+
+sub echo {
+    my ($self, $enabled) = @_;
+    if ($enabled) {
+        $self->screen->curvis;
+        $self->screen->echo;
+    } else {
+        $self->screen->curinvis;
+        $self->screen->noecho;
+    }
+}
 
 sub draw {
     my ($self, $x, $y, $text, $fg_color, $bg_color) = @_;

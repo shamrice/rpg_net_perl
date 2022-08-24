@@ -92,6 +92,9 @@ sub run {
             when ('u') {
                 $self->draw_debug_user_list;
             }
+            when ('t') {
+                $self->handle_chat_input;
+            }
         }    
 
         if ($moved) {   
@@ -298,6 +301,23 @@ sub load_current_map {
     );  
 
     $self->user->needs_map_load(0);
+
+}
+
+
+sub handle_chat_input {
+    my $self = shift;
+
+    $self->scr->clear_line(23);
+    $self->scr->draw(1, 23, "Say: ");    
+    my $input = $self->inp->get_string_input;
+    
+    $self->scr->clear_line(23);
+    if (length $input) {        
+        $self->scr->draw(1, 23, "Said: $input length:". length $input);    
+    }
+
+    #TODO : Sent to network endpoint to post entered text if not empty.
 
 }
 
