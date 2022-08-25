@@ -37,3 +37,6 @@ inc/
 .vscode
 .idea
 .idea/**
+*.log
+
+
