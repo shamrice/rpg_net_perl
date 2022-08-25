@@ -4,10 +4,7 @@ package RpgClient;
 use strict;
 use warnings;
 
-use Time::HiRes qw(time);
-
-use feature qw(say switch);
-
+use Log::Log4perl qw(:easy);
 use RpgClient::IO::UserInput;
 use RpgClient::IO::Screen;
 use RpgClient::IO::Network;
@@ -15,7 +12,12 @@ use RpgClient::User;
 use RpgClient::Map;
 use RpgClient::Engine;
 
+Log::Log4perl->init('./RpgClient/conf/log4perl.conf');
+
 sub main {
+
+    my $logger = Log::Log4perl->get_logger("RpgClient");
+    $logger->info("RpgClient is starting up...");
 
     print "Please enter a player name: ";
     my $player_name = <>;

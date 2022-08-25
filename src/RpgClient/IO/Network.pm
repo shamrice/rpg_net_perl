@@ -35,6 +35,10 @@ has user_agent => (
     is => 'ro'
 );
 
+has logger => (
+    is      => 'ro',
+    default => sub { Log::Log4perl->get_logger("RpgClient") }
+);
 
 sub BUILD {
     my ($self, $args) = @_;
@@ -55,15 +59,15 @@ sub authenticate {
     my $token_code = $token_response->{code};
     my $token_value = $token_response->{token};
 
-    say "Json token response: $token_status : $token_code : $token_value";
+    $self->logger->info("Json token response: $token_status : $token_code : $token_value");
 
     if ($token_code != 200) {
-        say "Error getting tokens: $token_status : $token_code : $token_value";
+        $self->logger->error("Error getting tokens: $token_status : $token_code : $token_value");
         return 0;
     }
 
     $self->_set_token($token_value);
-    say "Successfully authenticated $username with server.";
+    $self->logger->info("Successfully authenticated $username with server.");
     return 1;
 }
 
@@ -93,14 +97,14 @@ sub add_user {
     my $status = $response->{status};
     my $code = $response->{code};    
 
-    say "Json add user response: $status : $code ";
+    $self->logger->info("Json add user response: $status : $code ");
 
     if ($code != 200) {
-        say "Error adding user: $username : response: $status : $code";
+        $self->logger->error("Error adding user: $username : response: $status : $code");
         return 0;
     }
     
-    say "Successfully add player $username on the server.";
+    $self->logger->info("Successfully add player $username on the server.");
     return 1;
 
 }
@@ -144,11 +148,11 @@ sub update_user {
 
     # say "Json update user response: $status : $code ";
     if ($code != 200) {
-        say "Error updating user: $username : response: $status : $code :: $!";
+        $self->logger->error("Error updating user: $username : response: $status : $code :: $!");
         return 0;
     }
     
-    # say "Successfully updated player $username on the server.";
+    $self->logger->trace("Successfully updated player $username on the server.");
     return 1;
 }
 
@@ -172,7 +176,7 @@ sub get_players {
     # say "Json get users response: $status : $code : $users ";
 
     if ($code != 200) {
-        say "Error getting users: $status : $code ";
+        $self->logger->error("Error getting users: $status : $code ");
         return 0;
     }
     
@@ -249,11 +253,11 @@ sub remove_user {
     my $code = $token_response->{code};    
     
     if ($code != 200) {
-        # say "Error removing user: $status : $code";
+        $self->logger->error("Error removing user: $status : $code");
         return 0;
     }
     
-    # say "Successfully removed user $username from server.";
+    $self->logger->info("Successfully removed user $username from server.");
     return 1;
 
 }
@@ -273,7 +277,7 @@ sub get_map {
     my $code = $response->{code};       
 
     if ($code != 200) {
-        confess "Error getting map data: $status : $code " . Dumper \$response;
+        $self->logger->logconfess("Error getting map data: $status : $code " . Dumper \$response);
         # return 0;
     }
 

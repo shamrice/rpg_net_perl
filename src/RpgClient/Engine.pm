@@ -37,6 +37,11 @@ has user_list => (
     is => 'rw',
 );
 
+has logger => (
+    is      => 'ro',
+    default => sub { Log::Log4perl->get_logger("RpgClient") }
+);
+
 
 sub init {
     my $self = shift;
@@ -50,6 +55,7 @@ sub init {
 sub run {
     my $self = shift;
 
+    $self->logger->info("Engine starting.");
 
     $self->scr->refresh;
 
@@ -146,7 +152,8 @@ sub run {
         }
 
     }
- 
+
+    $self->logger->info("Engine is shutting down...");
 
     $self->scr->draw(40, 22, $exit_message);
     $self->inp->blocking_getch;
