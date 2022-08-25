@@ -35,5 +35,5 @@ inc/
 /*.zip
 
 .vscode
-
+.idea
 .idea/**
