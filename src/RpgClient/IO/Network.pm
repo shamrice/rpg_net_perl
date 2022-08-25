@@ -49,7 +49,7 @@ sub authenticate {
     my $username = $self->user->id;    
 
     my $url = Mojo::URL->new(SERVER_HOST.TOKEN_ENDPOINT.$username)->userinfo("$username:".SERVER_KEY);
-    my $token_response =  $self->{user_agent}->get($url)->result->json;
+    my $token_response =  $self->user_agent->get($url)->result->json;
 
     my $token_status = $token_response->{status};
     my $token_code = $token_response->{code};
@@ -88,7 +88,7 @@ sub add_user {
         y => $self->{user}->y
     };
 
-    my $response =  $self->{user_agent}->post($url => json => $req_body)->result->json;
+    my $response =  $self->user_agent->post($url => json => $req_body)->result->json;
 
     my $status = $response->{status};
     my $code = $response->{code};    
@@ -115,7 +115,7 @@ sub update_user {
     my $url = Mojo::URL->new(SERVER_HOST.UPDATE_USER_ENDPOINT.$username)->userinfo("$username:$password");
 
     my $req_body = {
-        id => $self->{user}->id
+        id => $self->user->id
     };
 
     if (defined $map_x) {
@@ -137,7 +137,7 @@ sub update_user {
         $req_body->{user_char} = $user_char;
     }
 
-    my $response =  $self->{user_agent}->put($url => json => $req_body)->result->json;
+    my $response =  $self->user_agent->put($url => json => $req_body)->result->json;
 
     my $status = $response->{status};
     my $code = $response->{code};    
@@ -160,7 +160,7 @@ sub get_players {
     my $password = $self->token;
 
     my $url = Mojo::URL->new(SERVER_HOST.GET_USERS_ENDPOINT."/".$world_id."/".$map_x."/".$map_y)->userinfo("$username:$password");
-    my $response =  $self->{user_agent}->get($url)->result->json;
+    my $response =  $self->user_agent->get($url)->result->json;
 
     my $status = $response->{status};
     my $code = $response->{code};   
@@ -243,13 +243,13 @@ sub remove_user {
     my $password = $self->token;
 
     my $url = Mojo::URL->new(SERVER_HOST.DELETE_USER_ENDPOINT.$username)->userinfo("$username:$password");
-    my $token_response =  $self->{user_agent}->delete($url)->result->json;
+    my $token_response =  $self->user_agent->delete($url)->result->json;
 
     my $status = $token_response->{status};
     my $code = $token_response->{code};    
     
     if ($code != 200) {
-        # say "Error removign user: $status : $code";
+        # say "Error removing user: $status : $code";
         return 0;
     }
     
@@ -267,14 +267,14 @@ sub get_map {
     my $password = $self->token;
 
     my $url = Mojo::URL->new(SERVER_HOST.GET_MAP_ENDPOINT.$world_id."/".$map_x."/".$map_y)->userinfo("$username:$password");
-    my $response =  $self->{user_agent}->get($url)->result->json;
+    my $response =  $self->user_agent->get($url)->result->json;
 
     my $status = $response->{status};
     my $code = $response->{code};       
 
     if ($code != 200) {
         confess "Error getting map data: $status : $code " . Dumper \$response;
-        return 0;
+        # return 0;
     }
 
     my $data = $response->{data}; 

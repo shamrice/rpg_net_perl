@@ -134,7 +134,7 @@ sub run {
             }
         }
 
-        if ((time() - $polling_time) > 1 ) { # 0.05) {                
+        if ((time() - $polling_time) > 0.25 ) { # 0.05) {                
             $polling_time = time();                
             $self->update_and_draw_players;
         }
@@ -209,7 +209,8 @@ sub update_and_draw_players {
     tile. If so, handles that collision or passes off to anther
     sub that can.
     Returns: true on blocking collision, otherwise false.
-=cut;
+=cut
+
 sub check_player_collision {
     my $self = shift;
 
