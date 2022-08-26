@@ -107,7 +107,8 @@ sub run {
             
             if (!$self->map->handle_map_interaction($self->user) && !$self->check_player_collision) {                               
 
-                if ($self->user->needs_map_load) {                
+                if ($self->user->needs_map_load) {
+                    $self->logger->info("needs_map_load == true : Loading new map: " . $self->user->map_x . "," . $self->user->map_y);
                     $self->load_current_map;
                 } 
 
@@ -187,6 +188,7 @@ sub update_and_draw_players {
                 $self->map->get_background_color($user_list{$user_to_draw}->x, $user_list{$user_to_draw}->y)
             );
 
+            $self->logger->info("User : " . $user_list{$user_to_draw}->id . " has left the game.");
             delete $user_list{$user_to_draw};
 
         } elsif ($user_list{$user_to_draw}->needs_redraw) {
@@ -308,6 +310,7 @@ sub load_current_map {
         $self->map->get_background_color($self->user->x, $self->user->y)
     );  
 
+    $self->logger->info("Map : " . $self->user->map_x . "," . $self->user->map_y . " has been loaded.");
     $self->user->needs_map_load(0);
 
 }

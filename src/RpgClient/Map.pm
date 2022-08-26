@@ -5,6 +5,7 @@ package RpgClient::Map;
 use feature qw(say);
 use Compress::LZW;
 use MIME::Base64;
+use Data::Dumper;
 use Carp;
 
 use Moo;
@@ -35,6 +36,12 @@ has map_data => (
 has map_tile_lookup => (
     is => 'rwp'
 );
+
+has logger => (
+    is      => 'ro',
+    default => sub { Log::Log4perl->get_logger("RpgClient") }
+);
+
 
 sub BUILD {
     my ($self, $args) = @_;
@@ -76,12 +83,12 @@ sub set_map_data {
         }
         $map_y++;
     }
+    $self->logger->info("Finished setting map data.");
 }
 
 sub draw_map {
     my $self = shift;
 
-   
     foreach my $y (keys %{$self->{map_data}}) {
         foreach my $x (keys %{$self->{map_data}{0}}) {
             
@@ -100,7 +107,7 @@ sub draw_map {
                 foreach my $key (keys %{$self->{map_data}}) {
                     $key_str .= " $key,";
                 }
-                confess "TILE ID NOT DEFINED AT: $y,$x Y keys=$key_str";
+                $self->logger->logconfess("TILE ID NOT DEFINED AT: $y,$x Y keys=$key_str : map_data=" . Dumper \$self->{map_data});
             }
         }
     }
@@ -132,10 +139,10 @@ sub get_tile_data {
 
     # don't call out of bounds or will cause autovivication of that invalid range. Hard stop for now.
     if ($y < 0 || $y > MAP_VERTICAL_MAX) {
-        confess "Attempted to get out of bounds y tile: $y";
+        $self->logger->logconfess("Attempted to get out of bounds y tile at: $x, $y");
     }
     if ($x < 0 || $x > MAP_HORIZONTAL_MAX) {
-        confess "Attempted to get out of bounds x tile: $x";
+        $self->logger->logconfess("Attempted to get out of bounds x tile at: $x, $y");
     }
 
     my $sizeof_y = keys %{$self->{map_data}};
@@ -155,7 +162,7 @@ sub get_tile_data {
     TODO: Code smell updating user in the map module...
     Handles user interactions with the map at their x,y coordinates.
     Returns: true on blocking interaction otherwise, returns 1.
-=cut;
+=cut
 sub handle_map_interaction {
     my ($self, $user) = @_;
 

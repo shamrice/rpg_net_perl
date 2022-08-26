@@ -83,6 +83,11 @@ has status => (
 );
 
 
+has logger => (
+    is      => 'ro',
+    default => sub { Log::Log4perl->get_logger("RpgClient") }
+);
+
 
 sub BUILD {
     my ($self, $args) = @_;
@@ -90,6 +95,8 @@ sub BUILD {
         $self->user_char(substr($self->user_char, 0, 1));
     }
 
+    # TODO : this makes logging interesting as a UUID is always generated but gets overwritten after creation on
+    #        existing users.
     my $ug = Data::UUID->new;
     my $user_id_raw = $ug->create_from_name($ug->create, (localtime().$ug->create()));
     my $user_id = $ug->to_string($user_id_raw);
@@ -102,7 +109,7 @@ sub BUILD {
 
     $self->_set_status(STATUS_ALIVE);
 
-    # say "Created new user with id: $user_id and user_char: $user_char";
+    $self->logger->info("Built new user: " . $self->to_string);
 
 }
 
@@ -155,12 +162,27 @@ sub update_health {
     if ($self->current_hp <= 0) {
         $self->_set_status(STATUS_DEAD);
         $self->_set_current_hp(0);
+        $self->logger->info("Player has died. Status set to: STATUS_DEAD");
     }
 }
 
 sub is_alive {
     my $self = shift;
     return $self->status eq STATUS_ALIVE;
+}
+
+sub to_string {
+    my $self = shift;
+    my $id = $self->id;
+    my $name = $self->name;
+    my $user_char = $self->user_char;
+    my $map_x = $self->map_x;
+    my $map_y = $self->map_y;
+    my $x = $self->x;
+    my $y = $self->y;
+    my $status = $self->status;
+
+    return "User id: $id :: name: $name :: user_char: $user_char :: map_x: $map_x :: map_y: $map_y x: $x :: y: $y :: status: $status";
 }
 
 
