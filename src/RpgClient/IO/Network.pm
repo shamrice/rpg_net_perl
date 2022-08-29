@@ -10,14 +10,16 @@ use Carp;
 
 #TODO : these should be from a configuration
 use constant {
-    SERVER_KEY => "B2F55FE4-B9FD-421E-8764-51CBC323E36C",
-    SERVER_HOST => "http://localhost:3000",
-    TOKEN_ENDPOINT => "/rest/token/",
-    ADD_USER_ENDPOINT => "/rest/user/add/",
+    SERVER_KEY           => "B2F55FE4-B9FD-421E-8764-51CBC323E36C",
+    SERVER_HOST          => "http://localhost:3000",
+    TOKEN_ENDPOINT       => "/rest/token/",
+    ADD_USER_ENDPOINT    => "/rest/user/add/",
     UPDATE_USER_ENDPOINT => "/rest/user/",
-    GET_USERS_ENDPOINT => "/rest/users",
+    GET_USERS_ENDPOINT   => "/rest/users",
     DELETE_USER_ENDPOINT => "/rest/user/",
-    GET_MAP_ENDPOINT => "/rest/map/"
+    GET_MAP_ENDPOINT     => "/rest/map/",
+    GET_CHAT_ENDPOINT    => "/rest/chat",
+    POST_CHAT_ENDPOINT   => "/rest/chat/add/"
 };
 
 
@@ -46,6 +48,8 @@ sub BUILD {
     $self->{user_agent} = $ua;
 }
 
+
+# TODO : Refactor common sub steps into a single sub that's called from each.
 
 sub authenticate {
     my $self = shift;
@@ -286,5 +290,56 @@ sub get_map {
     return $data;
 }
 
+sub add_chat_log {
+    my ($self, $text) = @_;
 
+    chomp ($text);
+    if (!length $text) {
+        $self->logger->warn("Attempted to post empty chat log data to server.");
+        return;
+    }
+
+    my $username = $self->user->id;
+    my $password = $self->token;
+
+    my $url = Mojo::URL->new(SERVER_HOST.POST_CHAT_ENDPOINT.$username)->userinfo("$username:$password");
+
+    my $req_body = {
+        text => $text
+    };
+
+    my $response =  $self->user_agent->post($url => json => $req_body)->result->json;
+
+    my $status = $response->{status};
+    my $code = $response->{code};
+
+    if ($code != 200) {
+        $self->logger->logconfess("Error getting chat log: $status : $code " . Dumper \$response);
+    } else {
+        $self->logger->info("Sent chat log text: $text");
+    }
+
+}
+
+sub get_chat_log {
+    my $self = shift;
+
+    my $username = $self->user->id;
+    my $password = $self->token;
+
+    my $url = Mojo::URL->new(SERVER_HOST.GET_CHAT_ENDPOINT)->userinfo("$username:$password");
+    my $response =  $self->user_agent->get($url)->result->json;
+
+    my $status = $response->{status};
+    my $code = $response->{code};
+
+    if ($code != 200) {
+        $self->logger->logconfess("Error getting chat log: $status : $code " . Dumper \$response);
+    }
+
+    my $chat_log = $response->{chat_log};
+
+    return $chat_log;
+
+}
 1;

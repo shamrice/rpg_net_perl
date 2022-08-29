@@ -368,8 +368,10 @@ get '/rest/chat' => sub {
     my $chat_response = {
         status => "Success",
         code => 200,
-        users => $chat_messages
+        chat_log => $chat_messages
     };
+
+    $log->info("Returning chat log response: " . Dumper \$chat_response);
 
     return $self->render(json => $chat_response);
 
@@ -408,7 +410,7 @@ post '/rest/chat/add/:id' => sub {
     my $chat_response = {
         status => "Success",
         code => 200
-    }; 
+    };
     return $self->render(json => $chat_response);
 
 };

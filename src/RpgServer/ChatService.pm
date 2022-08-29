@@ -6,9 +6,10 @@ use warnings FATAL => 'all';
 use POSIX;
 use Moo;
 
-use constant (
-    MAX_CHAT_QUEUE_LENGTH => 10
-);
+use constant {
+    MAX_CHAT_QUEUE_LENGTH => 10,
+    MAX_CHAT_TEXT_LENGTH  => 128
+};
 
 my $log = Mojo::Log->new;
 
@@ -21,6 +22,11 @@ sub add_message {
     chomp($user_name);
     chomp($text);
 
+    if (length $text >= MAX_CHAT_TEXT_LENGTH) {
+        $log->info("New chat text length from $user_name too long. Text to be truncated: $text");
+        $text = substr($text, 0, MAX_CHAT_TEXT_LENGTH);
+    }
+
     my $date_str = strftime("%H:%M:%S", localtime);
 
     my $chat_text = "[$date_str $user_name]: $text";
@@ -29,7 +35,7 @@ sub add_message {
         $self->_set_chat_queue([ ]);
     }
     my $removed_text = "";
-    if (scalar(@{$self->chat_queue}) > MAX_CHAT_QUEUE_LENGTH) {
+    if (scalar(@{$self->chat_queue}) >= MAX_CHAT_QUEUE_LENGTH) {
         $removed_text = shift(@{$self->chat_queue});
     }
     push @{$self->chat_queue}, $chat_text;

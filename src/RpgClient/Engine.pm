@@ -2,6 +2,8 @@
 
 package RpgClient::Engine;
 
+use Data::Dumper;
+
 use feature qw(say switch);
 use Time::HiRes qw(time);
 
@@ -100,6 +102,9 @@ sub run {
             }
             when ('t') {
                 $self->handle_chat_input;
+            }
+            when ('y') {
+                $self->get_chat_log;
             }
         }    
 
@@ -325,11 +330,25 @@ sub handle_chat_input {
     
     $self->scr->clear_line(23);
     if (length $input) {        
-        $self->scr->draw(1, 23, "Said: $input length:". length $input);    
+        $self->scr->draw(1, 23, "Said: $input length:". length $input);
+        $self->net->add_chat_log($input);
+    }
+}
+
+sub get_chat_log {
+    my $self = shift;
+    my $chat_log = $self->net->get_chat_log;
+    $self->logger->info("Chat log = " . Dumper \$chat_log);
+
+    for my $line (23..33) {
+        $self->scr->clear_line($line);
     }
 
-    #TODO : Sent to network endpoint to post entered text if not empty.
-
+    my $y = 23;
+    foreach my $log (@$chat_log) {
+        $self->scr->draw(1, $y, $log);
+        $y++;
+    }
 }
 
 1;
