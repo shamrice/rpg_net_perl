@@ -3,13 +3,15 @@ package RpgServer;
 
 use Mojolicious::Lite; 
 use Mojo::JSON qw(encode_json decode_json);
-use feature qw(say);
 use Compress::LZW;
 use MIME::Base64;
+use Data::Dumper;
 
 use RpgServer::AuthorizationService; 
-use RpgServer::UserService; 
+use RpgServer::UserService;
+use RpgServer::ChatService;
 
+use feature qw(say);
 use strict;
 use warnings;
  
@@ -19,7 +21,8 @@ use warnings;
 my $log = Mojo::Log->new;
 my $auth_service = RpgServer::AuthorizationService->new;
 my $user_service = RpgServer::UserService->new;
- 
+my $chat_service = RpgServer::ChatService->new;
+
 $log->info("Server starting up");
 
 
@@ -55,7 +58,6 @@ foreach my $map_filename (@map_files) {
     $map[$map_world][$map_x][$map_y] = $compressed_map_data;
 
     close(MAP_FH);
-  
 }
 
 # my $enemy_filename = "enemy_".$map_world.$map_y.$map_x.".json";
@@ -349,6 +351,67 @@ get '/rest/token/:id' => sub {
 };
 
 
+
+get '/rest/chat' => sub {
+    my $self = shift;
+
+    if (!$auth_service->validate_auth($self->req->headers->authorization)) {
+        my $error_response = {
+            status => "Unauthorized",
+            code => 401
+        };
+        return $self->render(json => $error_response, status => 401);
+    }
+
+    my $chat_messages = $chat_service->get_messages;
+
+    my $chat_response = {
+        status => "Success",
+        code => 200,
+        users => $chat_messages
+    };
+
+    return $self->render(json => $chat_response);
+
+};
+
+
+post '/rest/chat/add/:id' => sub {
+    my $self = shift;
+    my $id = $self->param('id');
+
+    if (!$auth_service->validate_auth($self->req->headers->authorization, $id)) {
+        my $error_response = {
+            status => "Unauthorized",
+            code => 401
+        };
+        return $self->render(json => $error_response, status => 401);
+    }
+
+    my $found_user = $user_service->get_user($id);
+    if (not defined $found_user) {
+        my $error_response = {
+            id => $id,
+            status => "User not found",
+            code => 404
+        };
+        return $self->render(json => $error_response, status => 404);
+    }
+
+    my $data = decode_json($self->req->body);
+    $log->info("JSON data: " . Dumper \$data);
+    my $chat_text = $data->{'text'};
+    my $chat_name = $found_user->{name};
+
+    $chat_service->add_message($chat_name, $chat_text);
+
+    my $chat_response = {
+        status => "Success",
+        code => 200
+    }; 
+    return $self->render(json => $chat_response);
+
+};
 
 app->start;
 

@@ -41,7 +41,7 @@ sub activity_timeout_checker {
         threads->detach(); # end thread
     });
 } 
-=cut;
+=cut
 
 
 sub add_user {
@@ -177,7 +177,7 @@ sub get_user {
         y => $found_user->y
     };
 
-    return $found_user;
+    return $user;
 }
 
 
