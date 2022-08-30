@@ -7,6 +7,7 @@ use Compress::LZW;
 use MIME::Base64;
 use Data::Dumper;
 
+use RpgServer::Configuration;
 use RpgServer::AuthorizationService; 
 use RpgServer::UserService;
 use RpgServer::ChatService;
@@ -14,14 +15,32 @@ use RpgServer::ChatService;
 use feature qw(say);
 use strict;
 use warnings;
- 
+
+=head3 Usage
+    Set env vars if needed.
+    RPG_DUMP_CONFIG=1 RPG_SERVER_CONFIG=/some/config.conf  morbo ./RpgServer.pl
+=cut
+
  
 #TODO : admin remove player endpoint and also a similar endpoint where players can remove themselves.
 
 my $log = Mojo::Log->new;
-my $auth_service = RpgServer::AuthorizationService->new;
-my $user_service = RpgServer::UserService->new;
-my $chat_service = RpgServer::ChatService->new;
+
+my $config_file = "./RpgServer/conf/server.conf";
+my $dump_config = 0;
+if (defined $ENV{RPG_SERVER_CONFIG}) {
+    $config_file = $ENV{RPG_SERVER_CONFIG};
+}
+if (defined $ENV{RPG_DUMP_CONFIG}) {
+    $dump_config = 1;
+}
+say Dumper \%ENV;
+$log->info("Using configuration file: $config_file");
+
+my $config = RpgServer::Configuration::get_config($config_file, $dump_config);
+my $auth_service = RpgServer::AuthorizationService->new(config => $config->{authorization_service});
+my $user_service = RpgServer::UserService->new(config => $config->{user_service});
+my $chat_service = RpgServer::ChatService->new(config => $config->{chat_service});
 
 $log->info("Server starting up");
 
@@ -38,7 +57,7 @@ my @map_files = ("000.map", "001.map", "010.map");
 
 foreach my $map_filename (@map_files) {
     my $map_data_raw;
-    open(MAP_FH, '<', "./RpgServer/data/maps/$map_filename") or die "Cannot load test map data : $!\n";
+    open(MAP_FH, '<', $config->{data}{MAP_DIRECTORY} . $map_filename) or die "Cannot load test map data : $!\n";
     while (<MAP_FH>) {
         my $row = $_;
         chomp($row);
@@ -68,7 +87,7 @@ my @enemy_files = ("enemy_000.json", "enemy_001.json");
 
 foreach my $enemy_filename (@enemy_files) {
 
-    open(ENEMY_FH, '<', "./RpgServer/data/enemies/$enemy_filename") or die "Cannot load enemy data: $!\n";
+    open(ENEMY_FH, '<', $config->{data}{ENEMIES_DIRECTORY} . $enemy_filename) or die "Cannot load enemy data: $!\n";
     my $enemy_json_data;
     while (<ENEMY_FH>) {
         my $row = $_;

@@ -7,13 +7,13 @@ use Moo;
 
 use RpgServer::User;
 
-
-use constant PLAYER_TIMEOUT_SECONDS => 240;
-
 my $log = Mojo::Log->new;
 my %user_hash;
 
-
+has config => (
+    is       => 'ro',
+    required => 1
+);
 
 =pod
 
@@ -107,7 +107,7 @@ sub get_users {
         my $found_user_id = $found_user->id;
         $log->info("Found user: ".$found_user->to_string);
                 
-        if (time() - $found_user->last_activity > PLAYER_TIMEOUT_SECONDS) {
+        if (time() - $found_user->last_activity > $self->config->{PLAYER_TIMEOUT_SECONDS}) {
             $log->info("User: $found_user_id has timed out and will be removed from the server.");
             delete $user_hash{$found_user_id};
             next;

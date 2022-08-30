@@ -11,6 +11,7 @@ use Carp;
 #TODO : these should be from a configuration
 use constant {
     SERVER_KEY           => "B2F55FE4-B9FD-421E-8764-51CBC323E36C",
+    # SERVER_HOST          => "http://perl-test.herokuapp.com/rpg",
     SERVER_HOST          => "http://localhost:3000",
     TOKEN_ENDPOINT       => "/rest/token/",
     ADD_USER_ENDPOINT    => "/rest/user/add/",

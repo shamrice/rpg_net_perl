@@ -7,20 +7,26 @@ use Moo;
 use MIME::Base64;
 use Data::UUID;
 
-#TODO : make configurable and get via a configuration module.
-use constant SERVER_KEY => "B2F55FE4-B9FD-421E-8764-51CBC323E36C";
+has config => (
+    is       => 'ro',
+    required => 1
+);
 
-
+my $SERVER_KEY;
 my %user_hash;
 my %valid_tokens;
-
 my $log = Mojo::Log->new;
+
+sub BUILD {
+    my ($self, $args) = @_;
+    $SERVER_KEY = $self->config->{SERVER_KEY};
+}
 
 sub generate_token {
     my ($self, $id) = @_;
 
     my $ug = Data::UUID->new;
-    my $token = $ug->create_from_name(SERVER_KEY, (localtime().$id));
+    my $token = $ug->create_from_name($SERVER_KEY, (localtime().$id));
     my $token_str = $ug->to_string($token);
 
     $log->info("Generated new token: $token_str for id: $id");
@@ -33,7 +39,7 @@ sub generate_token {
 sub validate_token_auth {
     my ($self, $authorization_header, $id_param) = @_;
 
-     return 1;
+     #return 1;
 
     if (!length $authorization_header || $authorization_header !~ m/Basic /) {
         $log->info("Authorization header missing or invalid in get tokens call.");
@@ -50,7 +56,7 @@ sub validate_token_auth {
 
     $log->info("Basic auth header=$authorization_header split=$basic_auth_val decoded=$decoded_auth user=$username password=$password");
     
-    return ($password eq SERVER_KEY && $username eq $id_param);
+    return ($password eq $SERVER_KEY && $username eq $id_param);
         
 }
 
@@ -58,7 +64,7 @@ sub validate_token_auth {
 sub validate_auth {
     my ($self, $authorization_header, $id_param) = @_;
 
-     return 1;
+     #return 1;
 
     if ($authorization_header !~ m/Basic /) {
         return 0;
