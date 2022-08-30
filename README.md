@@ -4,7 +4,7 @@ Somewhat of a Perl version of my other older "[rpg_net](https://github.com/shamr
 There isn't much here yet. Once things start moving along (**IF** they do) this will be updated with some more detailed information.
 
 
-## Perl CPAN packages required
+## Perl CPAN packages used:
 This list may change on the fly...
 * [Mojolicious](https://metacpan.org/pod/Mojolicious)
 * [Mojo::UserAgent](https://metacpan.org/pod/Mojo::UserAgent)
@@ -15,7 +15,9 @@ This list may change on the fly...
 * [Time::HiRes](https://metacpan.org/pod/Time::HiRes)
 * [Mime::Base64](https://metacpan.org/pod/MIME::Base64)
 * [Compress::LZW](https://metacpan.org/pod/Compress::LZW)
-
+* [Config::Tiny](https://metacpan.org/pod/Config::Tiny)
+* [Data::Dumper](https://metacpan.org/pod/Data::Dumper)
+* [Carp](https://metacpan.org/pod/Carp)
 
 ## Running test server
 
