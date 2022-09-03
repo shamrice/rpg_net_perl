@@ -81,7 +81,7 @@ sub run {
             $moved = 1;      
         }
 
-        given ($char_input) {
+        for ($char_input) {
             when ('q') {
                 $is_running = 0;
             }
@@ -163,7 +163,7 @@ sub run {
 
     $self->scr->draw(40, 22, $exit_message);
     $self->inp->blocking_getch;
-
+    $self->scr->echo(1); #reset cursor back to original style.
     $self->scr->refresh;
 
     $self->net->remove_user;

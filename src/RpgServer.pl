@@ -1,6 +1,16 @@
 #!/usr/bin/perl
 package RpgServer;
 
+use feature qw(say);
+use strict;
+use warnings;
+
+
+BEGIN {
+    push @INC, "./";
+}
+
+
 use Mojolicious::Lite; 
 use Mojo::JSON qw(encode_json decode_json);
 use Compress::LZW;
@@ -12,16 +22,12 @@ use RpgServer::AuthorizationService;
 use RpgServer::UserService;
 use RpgServer::ChatService;
 
-use feature qw(say);
-use strict;
-use warnings;
 
 =head3 Usage
     Set env vars if needed.
     RPG_DUMP_CONFIG=1 RPG_SERVER_CONFIG=/some/config.conf  morbo ./RpgServer.pl
 =cut
 
- 
 #TODO : admin remove player endpoint and also a similar endpoint where players can remove themselves.
 
 my $log = Mojo::Log->new;

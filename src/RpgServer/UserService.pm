@@ -162,7 +162,7 @@ sub get_user {
     my ($self, $id) = @_;
 
     if (not exists $user_hash{$id}) {
-        return undef;
+        return;
     }
     
     my $found_user = $user_hash{$id};

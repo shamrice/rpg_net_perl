@@ -149,7 +149,7 @@ sub get_tile_data {
     my $sizeof_x = keys %{$self->{map_data}{0}};
 
     if ($x >= $sizeof_x || $y >= $sizeof_y) {
-        return undef;
+        return;
     }
 
     my $tile_data = $self->{map_data}->{$y}{$x}{$tile_key};    
