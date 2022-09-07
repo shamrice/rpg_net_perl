@@ -1,0 +1,6 @@
+requires 'Compress::LZW', '0.04';
+requires 'Data::UUID', '1.226';
+requires 'Mojolicious', '9.26';
+requires 'Moo', '2.005004';
+requires 'Config::Tiny', '2.28';
+requires 'Log::Log4perl', '1.56';
