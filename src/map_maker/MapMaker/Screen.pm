@@ -66,6 +66,27 @@ sub echo {
     }
 }
 
+
+sub get_screen_size {
+    my $self = shift;
+
+    my %scr_size = (
+        x => $self->screen->cols,
+        y => $self->screen->rows
+    );
+    return %scr_size;
+}
+
+sub draw_repeat {
+    my ($self, $x, $y, $char, $fg_color, $bg_color, $times) = @_;
+
+    my $text; 
+    for (1 .. $times) {        
+        $text .= $char;
+    }
+    $self->draw($x, $y, $text, $fg_color, $bg_color);
+}
+
 sub draw {
     my ($self, $x, $y, $text, $fg_color, $bg_color) = @_;
 
@@ -96,5 +117,11 @@ sub draw {
     # $scr->at(10, 6)->bold()->puts("hi!")->normal();
 }
 
+
+sub set_cursor {
+    my ($self, $x, $y) = @_;
+
+    $self->screen->at($y, $x);
+}
 
 1;
