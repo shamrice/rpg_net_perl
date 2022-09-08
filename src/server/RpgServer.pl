@@ -442,5 +442,32 @@ post '/rest/chat/add/:id' => sub {
 
 };
 
+
+get '/' => sub {
+    my $self = shift;
+    $self->render('index');
+
+
+};
+
 app->start;
 
+
+__DATA__
+@@ index.html.ep
+% layout 'default';
+% title 'Perl RPG Test Server';
+<p>Perl RPG Server is online</p>
+
+@@ layouts/default.html.ep
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= title %></title>
+    <meta charset="utf-8">    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  </head>
+  <body>
+    <%= content %>    
+  </body>
+</html>
