@@ -59,7 +59,7 @@ sub run {
     my $self = shift;
 
     $self->logger->info("Engine starting.");
-
+    
     $self->scr->refresh;
 
     my $is_running = 1;
