@@ -59,10 +59,6 @@ sub load_map_data {
 
     my @map = ( );
  
-    my $map_world = 0;
-    my $map_y = 0;
-    my $map_x = 0; 
-    
     my @map_files = glob($config->{data}{MAP_DIRECTORY} . "*.map"); 
 
     $log->info("Map data files: @map_files");
@@ -80,16 +76,16 @@ sub load_map_data {
         close($MAP_FH);
 
         (my $map_filename = $map_file) =~ s/^.*\///;
+        $map_filename =~ s/\.map//;
+        my @map_coords = split("_", $map_filename);
 
-        $map_x = int(substr($map_filename, 1, 1));
-        $map_y = int(substr($map_filename, 2, 1));
-        $log->debug("filename: $map_filename map xy: $map_x,$map_y");
+        $log->debug("stripped filename: $map_filename => map wxy: @map_coords");
     
         # map data is stored in memory and sent as base64 encoded LZW compressed version of the raw data to decrease response size.
         my $compressed_map_data = compress($map_data_raw);
         $compressed_map_data = encode_base64($compressed_map_data);
         chomp($compressed_map_data);
-        $map[$map_world][$map_x][$map_y] = $compressed_map_data;
+        $map[$map_coords[0]][$map_coords[1]][$map_coords[2]] = $compressed_map_data;
     
     }
 
