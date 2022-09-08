@@ -7,7 +7,7 @@ cpanm Carton
 carton install
 ```
 
-It should be noted that Carton installs the dependencies to the ```./local``` directory so will need to use ```carton exec``` if running locally outside of a docker container. (Unless you installed the dependencies manually via cpanm)
+It should be noted that Carton installs the dependencies to the ```./local``` directory so will need to use ```carton exec``` if running locally and didn't install the dependencies outside of Carton.
 
 # Running the Server
 
@@ -20,7 +20,7 @@ Simply type the following to spin up on localhost on port 3000:
 
 ## The "docker" way
 
-For local deploys you can simply run ```./deploy_local_dev_server.sh``` this will build the docker image, stop any existing containers and spin up a new container with the new image. The rest service will be located at http://localhost:8082 You can change this port in the script if needed.
+For local Docker deployments you can simply run ```./deploy_local_dev_server.sh``` this will build the docker image, stop any existing containers and spin up a new container with the new image. The rest service will be located at http://localhost:8082 You can change this port in the script if needed.
 
 For remote deployments, build and push the image as you would in your environment. Make sure to configure the environment variables as needed on your host's settings. 
 
