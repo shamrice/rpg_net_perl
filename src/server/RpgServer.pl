@@ -32,6 +32,8 @@ use RpgServer::ChatService;
 
 my $log = Mojo::Log->new;
 
+$log->debug("Server started with command line: $0 @ARGV");
+
 my $config_file = "./RpgServer/conf/server.conf";
 my $dump_config = 0;
 if (defined $ENV{RPG_SERVER_CONFIG}) {
@@ -40,7 +42,7 @@ if (defined $ENV{RPG_SERVER_CONFIG}) {
 if (defined $ENV{RPG_DUMP_CONFIG}) {
     $dump_config = 1;
 }
-say Dumper \%ENV;
+$log->debug("Environment vars: " . Dumper \%ENV);
 $log->info("Using configuration file: $config_file");
 
 my $config = RpgServer::Configuration::get_config($config_file, $dump_config);

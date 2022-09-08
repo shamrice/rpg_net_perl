@@ -5,6 +5,8 @@ use feature qw(say);
 use Data::Dumper;
 use Config::Tiny;
 
+my $log = Mojo::Log->new;
+
 sub get_config {
     my ($config_file, $dump_configs_to_stdout) = @_;
 
@@ -16,7 +18,7 @@ sub get_config {
         die "Error loading configuration file: $config";
     }
     if ($dump_configs_to_stdout) {
-        say "Loaded config: " . Dumper \$config;
+        $log->info("Loaded config: " . Dumper \$config);
     }
     return $config;
 }
