@@ -1,4 +1,3 @@
-#!/usr/bin/perl
 package RpgClient::IO::UserInput;
 
 use feature qw(say);

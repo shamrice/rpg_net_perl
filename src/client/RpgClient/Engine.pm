@@ -1,5 +1,3 @@
-#!/usr/bin/perl
-
 package RpgClient::Engine;
 
 use Data::Dumper;
@@ -8,6 +6,9 @@ use feature qw(say switch);
 use Time::HiRes qw(time);
 
 use Moo;
+
+no warnings qw( experimental::smartmatch );
+
 
 has user => (
     is => 'ro',

@@ -1,5 +1,3 @@
-#!/usr/bin/perl
-
 package RpgClient::IO::Screen;
 
 require Term::Screen;

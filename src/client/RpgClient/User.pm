@@ -1,4 +1,3 @@
-#!/usr/bin/perl
 package RpgClient::User;
 
 use Data::UUID;

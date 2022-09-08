@@ -8,26 +8,16 @@ use Moo;
 use Data::Dumper;
 use Carp;
 
-#TODO : these should be from a configuration
-use constant {
-    SERVER_KEY           => "B2F55FE4-B9FD-421E-8764-51CBC323E36C",
-    # SERVER_HOST          => "http://perl-test.herokuapp.com/rpg",
-    SERVER_HOST          => "http://localhost:3000",
-    TOKEN_ENDPOINT       => "/rest/token/",
-    ADD_USER_ENDPOINT    => "/rest/user/add/",
-    UPDATE_USER_ENDPOINT => "/rest/user/",
-    GET_USERS_ENDPOINT   => "/rest/users",
-    DELETE_USER_ENDPOINT => "/rest/user/",
-    GET_MAP_ENDPOINT     => "/rest/map/",
-    GET_CHAT_ENDPOINT    => "/rest/chat",
-    POST_CHAT_ENDPOINT   => "/rest/chat/add/"
-};
-
-
 has user => (
     is => "rwp",
     required => 1
 );
+
+has config => (
+    is => 'ro',
+    required => 1
+);
+
 
 has token => (
     is => 'rwp',
@@ -43,6 +33,7 @@ has logger => (
     default => sub { Log::Log4perl->get_logger("RpgClient") }
 );
 
+
 sub BUILD {
     my ($self, $args) = @_;
     my $ua = Mojo::UserAgent->new;
@@ -57,7 +48,12 @@ sub authenticate {
 
     my $username = $self->user->id;    
 
-    my $url = Mojo::URL->new(SERVER_HOST.TOKEN_ENDPOINT.$username)->userinfo("$username:".SERVER_KEY);
+    my $url = Mojo::URL->new(
+        $self->config->{SERVER_HOST} . 
+        $self->config->{TOKEN_ENDPOINT} . 
+        $username
+    )->userinfo("$username:" . $self->config->{SERVER_KEY});
+
     my $token_response =  $self->user_agent->get($url)->result->json;
 
     my $token_status = $token_response->{status};
@@ -84,7 +80,11 @@ sub add_user {
     my $username = $self->user->id;
     my $password = $self->token;
 
-    my $url = Mojo::URL->new(SERVER_HOST.ADD_USER_ENDPOINT.$username)->userinfo("$username:$password");
+    my $url = Mojo::URL->new(
+        $self->config->{SERVER_HOST} . 
+        $self->config->{ADD_USER_ENDPOINT} .
+        $username
+    )->userinfo("$username:$password");
 
 
     my $req_body = {
@@ -121,7 +121,11 @@ sub update_user {
     my $username = $self->user->id;
     my $password = $self->token;
 
-    my $url = Mojo::URL->new(SERVER_HOST.UPDATE_USER_ENDPOINT.$username)->userinfo("$username:$password");
+    my $url = Mojo::URL->new(
+        $self->config->{SERVER_HOST} .
+        $self->config->{UPDATE_USER_ENDPOINT} .
+        $username
+    )->userinfo("$username:$password");
 
     my $req_body = {
         id => $self->user->id
@@ -168,7 +172,12 @@ sub get_players {
     my $username = $self->user->id;    
     my $password = $self->token;
 
-    my $url = Mojo::URL->new(SERVER_HOST.GET_USERS_ENDPOINT."/".$world_id."/".$map_x."/".$map_y)->userinfo("$username:$password");
+    my $url = Mojo::URL->new(
+        $self->config->{SERVER_HOST} . 
+        $self->config->{GET_USERS_ENDPOINT} . 
+        "/".$world_id."/".$map_x."/".$map_y
+    )->userinfo("$username:$password");
+
     my $response =  $self->user_agent->get($url)->result->json;
 
     my $status = $response->{status};
@@ -251,7 +260,12 @@ sub remove_user {
     my $username = $self->user->id;    
     my $password = $self->token;
 
-    my $url = Mojo::URL->new(SERVER_HOST.DELETE_USER_ENDPOINT.$username)->userinfo("$username:$password");
+    my $url = Mojo::URL->new(
+        $self->config->{SERVER_HOST} .
+        $self->config->{DELETE_USER_ENDPOINT} .
+        $username
+    )->userinfo("$username:$password");
+
     my $token_response =  $self->user_agent->delete($url)->result->json;
 
     my $status = $token_response->{status};
@@ -275,7 +289,12 @@ sub get_map {
     my $username = $self->user->id;    
     my $password = $self->token;
 
-    my $url = Mojo::URL->new(SERVER_HOST.GET_MAP_ENDPOINT.$world_id."/".$map_x."/".$map_y)->userinfo("$username:$password");
+    my $url = Mojo::URL->new(
+        $self->config->{SERVER_HOST} .
+        $self->config->{GET_MAP_ENDPOINT} .
+        $world_id."/".$map_x."/".$map_y
+    )->userinfo("$username:$password");
+
     my $response =  $self->user_agent->get($url)->result->json;
 
     my $status = $response->{status};
@@ -303,7 +322,11 @@ sub add_chat_log {
     my $username = $self->user->id;
     my $password = $self->token;
 
-    my $url = Mojo::URL->new(SERVER_HOST.POST_CHAT_ENDPOINT.$username)->userinfo("$username:$password");
+    my $url = Mojo::URL->new(
+        $self->config->{SERVER_HOST} .
+        $self->config->{POST_CHAT_ENDPOINT} .
+        $username
+    )->userinfo("$username:$password");
 
     my $req_body = {
         text => $text
@@ -328,7 +351,11 @@ sub get_chat_log {
     my $username = $self->user->id;
     my $password = $self->token;
 
-    my $url = Mojo::URL->new(SERVER_HOST.GET_CHAT_ENDPOINT)->userinfo("$username:$password");
+    my $url = Mojo::URL->new(
+        $self->config->{SERVER_HOST} .
+        $self->config->{GET_CHAT_ENDPOINT}
+    )->userinfo("$username:$password");
+    
     my $response =  $self->user_agent->get($url)->result->json;
 
     my $status = $response->{status};

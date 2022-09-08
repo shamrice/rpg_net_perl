@@ -1,4 +1,3 @@
-#!/usr/bin/perl
 package RpgServer::AuthorizationService;
 
 use feature qw(say);
