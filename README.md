@@ -18,15 +18,15 @@ This list may change on the fly...
 * [Config::Tiny](https://metacpan.org/pod/Config::Tiny)
 * [Data::Dumper](https://metacpan.org/pod/Data::Dumper)
 * [Carp](https://metacpan.org/pod/Carp)
+* [Carton](https://metacpan.org/pod/Carton) - Server only
 
 ## Running test server
 
-Run ```morbo ./RpgServer.pl``` from the ```src``` directory. This will set up a Mojolicious::Lite REST service for the clients to connect to.
-
+See the [server README](https://github.com/shamrice/rpg_net_perl/blob/main/src/server/README.md) on how to either run locally via the Mojolicious ```morbo``` test server or via a Docker container.
 
 ## Running test client
 
-In the ```src``` directory run ```./RpgClient.pl```. This will default connect to the server running on ```http://localhost:3000```. 
+In the ```src/client``` directory run ```./RpgClient.pl```. This will default connect to the server running on ```http://localhost:3000```. 
 
 Multiple clients can be run from the same computer for testing.
 
