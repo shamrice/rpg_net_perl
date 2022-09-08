@@ -50,77 +50,90 @@ my $auth_service = RpgServer::AuthorizationService->new(config => $config->{auth
 my $user_service = RpgServer::UserService->new(config => $config->{user_service});
 my $chat_service = RpgServer::ChatService->new(config => $config->{chat_service});
 
-$log->info("Server starting up");
-
-
-# debug loading of test map...
-# TODO : move this into its own module.
-my @map = ( );
  
-my $map_world = 0;
-my $map_y = 0;
-my $map_x = 0; 
-# my $map_filename = $map_world.$map_y.$map_x.".map";
-my @map_files = ("000.map", "001.map", "010.map");
+my @map = load_map_data(); 
+load_enemy_data(); 
 
-foreach my $map_filename (@map_files) {
-    my $map_data_raw;
-    open(MAP_FH, '<', $config->{data}{MAP_DIRECTORY} . $map_filename) or die "Cannot load test map data : $!\n";
-    while (<MAP_FH>) {
-        my $row = $_;
-        chomp($row);
-        if ($row !~ m/^#.*/) {                
-            $map_data_raw .= $row;
-        }  
+
+sub load_map_data {
+
+    my @map = ( );
+ 
+    my $map_world = 0;
+    my $map_y = 0;
+    my $map_x = 0; 
+    
+    my @map_files = glob($config->{data}{MAP_DIRECTORY} . "*.map"); 
+
+    $log->info("Map data files: @map_files");
+
+    foreach my $map_file (@map_files) {
+        my $map_data_raw;
+        open(my $MAP_FH, '<', $map_file) or die "Cannot load test map data : $!\n";
+        while (<$MAP_FH>) {
+            my $row = $_;
+            chomp($row);
+            if ($row !~ m/^#.*/) {                
+                $map_data_raw .= $row;
+            }  
+        }
+        close($MAP_FH);
+
+        (my $map_filename = $map_file) =~ s/^.*\///;
+
+        $map_x = int(substr($map_filename, 1, 1));
+        $map_y = int(substr($map_filename, 2, 1));
+        $log->debug("filename: $map_filename map xy: $map_x,$map_y");
+    
+        # map data is stored in memory and sent as base64 encoded LZW compressed version of the raw data to decrease response size.
+        my $compressed_map_data = compress($map_data_raw);
+        $compressed_map_data = encode_base64($compressed_map_data);
+        chomp($compressed_map_data);
+        $map[$map_world][$map_x][$map_y] = $compressed_map_data;
+    
     }
 
-    $map_x = int(substr($map_filename, 1, 1));
-    $map_y = int(substr($map_filename, 2, 1));
-    say "filename: $map_filename map xy: $map_x,$map_y";
-    
-    # map data is stored in memory and sent as base64 encoded LZW compressed version of the raw data to decrease response size.
-    my $compressed_map_data = compress($map_data_raw);
-    $compressed_map_data = encode_base64($compressed_map_data);
-    chomp($compressed_map_data);
-    $map[$map_world][$map_x][$map_y] = $compressed_map_data;
-
-    close(MAP_FH);
+    return @map;
 }
 
-# my $enemy_filename = "enemy_".$map_world.$map_y.$map_x.".json";
 
-$map_y = 0;
+sub load_enemy_data {
 
-my @enemy_files = ("enemy_000.json", "enemy_001.json");
+    my @enemy_files = glob($config->{data}->{ENEMIES_DIRECTORY} . "*.json"); 
 
-foreach my $enemy_filename (@enemy_files) {
+    $log->info("Enemy data files: @enemy_files");
 
-    open(ENEMY_FH, '<', $config->{data}{ENEMIES_DIRECTORY} . $enemy_filename) or die "Cannot load enemy data: $!\n";
-    my $enemy_json_data;
-    while (<ENEMY_FH>) {
-        my $row = $_;
-        chomp($row);
-        $enemy_json_data .= $row;
-    }
-    say "Read enemy json data: $enemy_json_data";
+    foreach my $enemy_filename (@enemy_files) {
+
+        open(my $ENEMY_FH, '<', $enemy_filename) or die "Cannot load enemy data: $!\n";
+        my $enemy_json_data;
+        while (<$ENEMY_FH>) {
+            my $row = $_;
+            chomp($row);
+            $enemy_json_data .= $row;
+        }
+        close($ENEMY_FH);  
+
+        say "Read enemy json data: $enemy_json_data";
  
-    my $full_data = decode_json($enemy_json_data);
-    foreach my $data (@$full_data) {
-        $log->info("JSON data: $data");   
-        my $id = $data->{'id'} ;
-        my $name = $data->{'name'};
-        my $user_char = $data->{'user_char'};
-        my $map_x = $data->{'map_x'};
-        my $map_y = $data->{'map_y'};
-        my $x = $data->{'x'};
-        my $y = $data->{'y'};
-    
+        my $full_data = decode_json($enemy_json_data);
+
+        foreach my $data (@$full_data) {
+            $log->info("JSON data: $data");   
+            my $id = $data->{'id'} ;
+            my $name = $data->{'name'};
+            my $user_char = $data->{'user_char'};
+            my $map_x = $data->{'map_x'};
+            my $map_y = $data->{'map_y'};
+            my $x = $data->{'x'};
+            my $y = $data->{'y'};
   
-        $user_service->add_user($id, $name, $user_char, $map_x, $map_y, $x, $y);
+            $user_service->add_user($id, $name, $user_char, $map_x, $map_y, $x, $y);
+        }
     }
-  
-    close(ENEMY_FH);  
+    
 }
+
     
 post '/rest/user/add/:id' => sub {
     my $self = shift;
@@ -450,6 +463,8 @@ get '/' => sub {
 
 };
 
+
+$log->info("Server starting up");
 app->start;
 
 
