@@ -80,6 +80,11 @@ do {
         $quit = 1;
     } elsif ($user_inp eq "t") {
         setup_new_tile(\%new_tile);
+    } elsif ($user_inp eq " ") {
+        $new_tile{x} = $cursor_info{x} - 1;
+        $new_tile{y} = $cursor_info{y} - 2;
+        $map->set_tile(%new_tile);
+        $scr->draw_tile(%new_tile);
     }
 
 

@@ -32,9 +32,9 @@ has map_data => (
     is => 'rwp',
 );
 
-has map_tile_lookup => (
-    is => 'rwp'
-);
+#has map_tile_lookup => (
+#    is => 'rwp'
+#);
 
 has logger => (
     is      => 'ro',
@@ -42,17 +42,17 @@ has logger => (
 );
 
 
-sub BUILD {
-    my ($self, $args) = @_;
+#sub BUILD {
+#    my ($self, $args) = @_;
 
     # TODO : load from a config? 
-    $self->{map_tile_lookup} = {
-        0 => ' ',
-        1 => '|',
-        2 => '^'
-    };
+#    $self->{map_tile_lookup} = {
+#        0 => ' ',
+#        1 => '|',
+#        2 => '^'
+#    };
 
-}
+#}
 
 sub load_map_data {
     my ($self, $map_file_name) = @_;
@@ -101,7 +101,7 @@ sub draw_map {
 
             #if for some reason tile_id is called at an unset x,y. die with confession.
             if (defined $tile_id) {
-                my $tile = $self->map_tile_lookup->{$tile_id};
+                my $tile = chr($tile_id); # $self->map_tile_lookup->{$tile_id};
 
                 my $fg_color = $self->map_data->{$y}{$x}{fg_color};
                 my $bg_color = $self->map_data->{$y}{$x}{bg_color};
@@ -128,10 +128,20 @@ sub get_foreground_color {
     return $self->get_tile_data($x, $y, TILE_FOREGROUND_COLOR_KEY);
 }
 
+sub set_tile {
+    my ($self, %tile) = @_;
+
+    $self->logger->info("Setting new tile: " . Dumper \%tile);
+    $self->map_data->{$tile{y}}{$tile{x}}{tile_id} = ord($tile{char});
+    $self->map_data->{$tile{y}}{$tile{x}}{attr} = $tile{attr};
+    $self->map_data->{$tile{y}}{$tile{x}}{fg_color} = $tile{fg_color};
+    $self->map_data->{$tile{y}}{$tile{x}}{bg_color} = $tile{bg_color};
+}
+
 sub get_tile {
     my ($self, $x, $y) = @_;
     my $tile_id = $self->get_tile_data($x, $y, TILE_ID_KEY);
-    return $self->map_tile_lookup->{$tile_id};
+    return chr($tile_id); # $self->map_tile_lookup->{$tile_id};
 }
 
 sub get_attribute {
@@ -194,7 +204,7 @@ sub get_tile_hash_at_cursor {
         y => $y, 
         fg_color => $tile->{fg_color},
         bg_color => $tile->{bg_color},
-        char => $self->map_tile_lookup->{$tile->{tile_id}},
+        char => chr($tile->{tile_id}), # $self->map_tile_lookup->{$tile->{tile_id}},
         attr => $tile->{attr}
     );
 
