@@ -34,6 +34,8 @@ sub get_string_input {
         $cur_char = $self->screen->getch;
         if ($cur_char ne "\r") {
             $output_str .= $cur_char;
+        } elsif ($cur_char eq "del") {
+            chop($output_str);
         }
     } while ($cur_char ne "\r");
     

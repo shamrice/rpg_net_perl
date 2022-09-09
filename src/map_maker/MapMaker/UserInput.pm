@@ -19,7 +19,7 @@ sub getch {
 
     my $char = ""; 
     if ($self->screen->key_pressed(0.1)) {        
-        $char = $self->screen->getch;
+        $char = $self->screen->getch;             
     }
     return $char;
 }
@@ -35,6 +35,8 @@ sub get_string_input {
         $cur_char = $self->screen->getch;
         if ($cur_char ne "\r") {
             $output_str .= $cur_char;
+        } elsif ($cur_char eq "kl") {
+            chop($output_str);
         }
     } while ($cur_char ne "\r");
     

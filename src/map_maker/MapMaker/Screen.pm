@@ -1,9 +1,10 @@
 package MapMaker::Screen;
 
 require Term::Screen;
-
+use Term::Screen;
 use feature qw(say);
 use Moo;
+use Data::Dumper;
 
 # this is basically a copy/paste from the client code with some minor changes...
 
@@ -31,14 +32,19 @@ has use_term_colors => (
     default => 0
 );
 
+has logger => (
+    is      => 'ro',
+    default => sub { Log::Log4perl->get_logger("MapMaker") }
+);
+
 
 sub BUILD {
     my ($self, $ags) = @_;
     my $scr = Term::Screen->new();
     unless ($scr) { die "Something when wrong $!\n"; }
     $self->_set_screen($scr);
-    # $self->screen->curinvis;
-    # $self->screen->noecho;
+    $self->screen->curinvis;
+    $self->screen->noecho;    
 }
 
 
@@ -87,14 +93,32 @@ sub draw_repeat {
     $self->draw($x, $y, $text, $fg_color, $bg_color);
 }
 
+
+sub draw_tile {
+    my ($self, %tile) = @_;
+
+   # $self->logger->info("Received tile to draw: " . Dumper \%tile);
+
+    $self->draw($tile{x} + 1, $tile{y} + 2, $tile{char}, $tile{fg_color}, $tile{bg_color});
+  
+    
+}
+
 sub draw {
-    my ($self, $x, $y, $text, $fg_color, $bg_color) = @_;
+    my ($self, $x, $y, $text, $fg_color, $bg_color, $is_bold) = @_;
 
     if (not defined $text) {
         return;
     }
 
+    if ($is_bold) {
+        $self->screen->bold;
+    } else {
+        $self->screen->normal;
+    }
+
     $self->screen->at($y, $x);    
+
 
     if ($self->use_term_colors) {
         if (not defined $fg_color) {

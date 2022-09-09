@@ -17,6 +17,7 @@ use constant {
     TILE_FOREGROUND_COLOR_KEY => "fg_color",
     TILE_BACKGROUND_COLOR_KEY => "bg_color",
 
+    TILE_ATTRIBUTE_NONE => 0,
     TILE_ATTRIBUTE_BLOCKING => 1,
     TILE_ATTRIBUTE_HURT => 2,
     TILE_ATTRIBUTE_DEATH => 3
@@ -87,31 +88,31 @@ sub load_map_data {
         $map_y++;
     }
     
-    $self->logger->info("Finished setting map data : " . Dumper \$self->{map_data});
+    $self->logger->trace("Finished setting map data : " . Dumper \$self->{map_data});
 }
 
 sub draw_map {
     my $self = shift;
 
-    foreach my $y (keys %{$self->{map_data}}) {
-        foreach my $x (keys %{$self->{map_data}{0}}) {
+    foreach my $y (keys %{$self->map_data}) {
+        foreach my $x (keys %{$self->map_data->{0}}) {
             
-            my $tile_id = $self->{map_data}->{$y}{$x}{tile_id};
+            my $tile_id = $self->map_data->{$y}{$x}{tile_id};
 
             #if for some reason tile_id is called at an unset x,y. die with confession.
             if (defined $tile_id) {
                 my $tile = $self->map_tile_lookup->{$tile_id};
 
-                my $fg_color = $self->{map_data}->{$y}{$x}{fg_color};
-                my $bg_color = $self->{map_data}->{$y}{$x}{bg_color};
+                my $fg_color = $self->map_data->{$y}{$x}{fg_color};
+                my $bg_color = $self->map_data->{$y}{$x}{bg_color};
 
                 $self->screen->draw($x + 1, $y + 2, $tile, $fg_color, $bg_color);           
             } else {
                 my $key_str = "";
-                foreach my $key (keys %{$self->{map_data}}) {
+                foreach my $key (keys %{$self->map_data}) {
                     $key_str .= " $key,";
                 }
-                $self->logger->logconfess("TILE ID NOT DEFINED AT: $y,$x Y keys=$key_str : map_data=" . Dumper \$self->{map_data});
+                $self->logger->logconfess("TILE ID NOT DEFINED AT: $y,$x Y keys=$key_str : map_data=" . Dumper \$self->map_data);
             }
         }
     }
@@ -149,18 +150,75 @@ sub get_tile_data {
         $self->logger->logconfess("Attempted to get out of bounds x tile at: $x, $y");
     }
 
-    my $sizeof_y = keys %{$self->{map_data}};
-    my $sizeof_x = keys %{$self->{map_data}{0}};
+    my $sizeof_y = keys %{$self->map_data};
+    my $sizeof_x = keys %{$self->map_data->{0}};
 
     if ($x >= $sizeof_x || $y >= $sizeof_y) {
         return;
     }
 
-    my $tile_data = $self->{map_data}->{$y}{$x}{$tile_key};    
+    my $tile_data = $self->map_data->{$y}{$x}{$tile_key};    
 
     return $tile_data;
 }
 
 
+sub get_tile_hash_at_cursor {
+    my ($self, $x, $y) = @_;
+
+    # compensate for the offset of the display location and the actual xy in memory.
+    $x -= 1;
+    $y -= 2;
+    
+    # don't call out of bounds or will cause autovivication of that invalid range. Hard stop for now.
+    if ($y < 0 || $y > MAP_VERTICAL_MAX) {
+        $self->logger->logconfess("Attempted to get out of bounds y tile at: $x, $y");
+    }
+    if ($x < 0 || $x > MAP_HORIZONTAL_MAX) {
+        $self->logger->logconfess("Attempted to get out of bounds x tile at: $x, $y");
+    }
+
+    my $sizeof_y = keys %{$self->map_data};
+    my $sizeof_x = keys %{$self->map_data->{0}};
+
+    if ($x >= $sizeof_x || $y >= $sizeof_y) {
+        return;
+    }
+
+    my $tile = $self->map_data->{$y}{$x};
+
+    # $self->logger->trace("Tile: " . Dumper \$tile);
+
+    my %full_tile_info = (
+        x => $x, 
+        y => $y, 
+        fg_color => $tile->{fg_color},
+        bg_color => $tile->{bg_color},
+        char => $self->map_tile_lookup->{$tile->{tile_id}},
+        attr => $tile->{attr}
+    );
+
+    return %full_tile_info;
+
+}
+
+
+sub get_attribute_name {
+    my ($self, $attribute_id) = @_;
+
+    my $attribute_name = "UNKNOWN";
+
+    if ($attribute_id == TILE_ATTRIBUTE_NONE) {
+        $attribute_name = "NONE";
+    } elsif ($attribute_id == TILE_ATTRIBUTE_DEATH) {
+        $attribute_name = "DEATH";
+    } elsif ($attribute_id == TILE_ATTRIBUTE_BLOCKING) {
+        $attribute_name = "BLOCKING";
+    } elsif ($attribute_id == TILE_ATTRIBUTE_HURT) {
+        $attribute_name = "HURT";
+    }
+
+    return $attribute_name;
+}
 
 1;
