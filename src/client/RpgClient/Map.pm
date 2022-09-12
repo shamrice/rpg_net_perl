@@ -31,27 +31,11 @@ has map_data => (
     is => 'rwp',
 );
 
-has map_tile_lookup => (
-    is => 'rwp'
-);
-
 has logger => (
     is      => 'ro',
     default => sub { Log::Log4perl->get_logger("RpgClient") }
 );
 
-
-sub BUILD {
-    my ($self, $args) = @_;
-
-    # TODO : load from a config? 
-    $self->{map_tile_lookup} = {
-        0 => ' ',
-        1 => '|',
-        2 => '^'
-    };
-
-}
 
 sub set_map_data {
     my ($self, $map_data_raw) = @_;
@@ -94,7 +78,7 @@ sub draw_map {
 
             #if for some reason tile_id is called at an unset x,y. die with confession.
             if (defined $tile_id) {
-                my $tile = $self->map_tile_lookup->{$tile_id};
+                my $tile = chr($tile_id);
 
                 my $fg_color = $self->{map_data}->{$y}{$x}{fg_color};
                 my $bg_color = $self->{map_data}->{$y}{$x}{bg_color};
@@ -124,7 +108,7 @@ sub get_foreground_color {
 sub get_tile {
     my ($self, $x, $y) = @_;
     my $tile_id = $self->get_tile_data($x, $y, TILE_ID_KEY);
-    return $self->map_tile_lookup->{$tile_id};
+    return chr($tile_id); 
 }
 
 sub get_attribute {
