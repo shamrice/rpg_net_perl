@@ -20,7 +20,9 @@ use constant {
     TILE_ATTRIBUTE_NONE => 0,
     TILE_ATTRIBUTE_BLOCKING => 1,
     TILE_ATTRIBUTE_HURT => 2,
-    TILE_ATTRIBUTE_DEATH => 3
+    TILE_ATTRIBUTE_DEATH => 3,
+
+    TILE_BLANK => 32
 };
 
 has screen => (
@@ -32,27 +34,30 @@ has map_data => (
     is => 'rwp',
 );
 
-#has map_tile_lookup => (
-#    is => 'rwp'
-#);
-
 has logger => (
     is      => 'ro',
     default => sub { Log::Log4perl->get_logger("MapMaker") }
 );
 
 
-#sub BUILD {
-#    my ($self, $args) = @_;
 
-    # TODO : load from a config? 
-#    $self->{map_tile_lookup} = {
-#        0 => ' ',
-#        1 => '|',
-#        2 => '^'
-#    };
+sub new_map {
+    my $self = shift;    
 
-#}
+    foreach my $map_y (0..MAP_VERTICAL_MAX - 1) {
+        foreach my $map_x (0..MAP_HORIZONTAL_MAX - 1) {
+            $self->{map_data}->{$map_y}{$map_x} = {
+                tile_id => TILE_BLANK,
+                attr => TILE_ATTRIBUTE_NONE,
+                fg_color => 0,
+                bg_color => 0
+            };   
+        }
+    }
+    
+    $self->logger->info("Set up new blank map data.");
+    
+}
 
 sub load_map_data {
     my ($self, $map_file_name) = @_;
@@ -101,7 +106,7 @@ sub draw_map {
 
             #if for some reason tile_id is called at an unset x,y. die with confession.
             if (defined $tile_id) {
-                my $tile = chr($tile_id); # $self->map_tile_lookup->{$tile_id};
+                my $tile = chr($tile_id); 
 
                 my $fg_color = $self->map_data->{$y}{$x}{fg_color};
                 my $bg_color = $self->map_data->{$y}{$x}{bg_color};
@@ -141,7 +146,7 @@ sub set_tile {
 sub get_tile {
     my ($self, $x, $y) = @_;
     my $tile_id = $self->get_tile_data($x, $y, TILE_ID_KEY);
-    return chr($tile_id); # $self->map_tile_lookup->{$tile_id};
+    return chr($tile_id); 
 }
 
 sub get_attribute {
@@ -153,10 +158,10 @@ sub get_tile_data {
     my ($self, $x, $y, $tile_key) = @_;
 
     # don't call out of bounds or will cause autovivication of that invalid range. Hard stop for now.
-    if ($y < 0 || $y > MAP_VERTICAL_MAX) {
+    if ($y < 0 || $y >= MAP_VERTICAL_MAX) {
         $self->logger->logconfess("Attempted to get out of bounds y tile at: $x, $y");
     }
-    if ($x < 0 || $x > MAP_HORIZONTAL_MAX) {
+    if ($x < 0 || $x >= MAP_HORIZONTAL_MAX) {
         $self->logger->logconfess("Attempted to get out of bounds x tile at: $x, $y");
     }
 
@@ -181,10 +186,10 @@ sub get_tile_hash_at_cursor {
     $y -= 2;
     
     # don't call out of bounds or will cause autovivication of that invalid range. Hard stop for now.
-    if ($y < 0 || $y > MAP_VERTICAL_MAX) {
+    if ($y < 0 || $y >= MAP_VERTICAL_MAX) {
         $self->logger->logconfess("Attempted to get out of bounds y tile at: $x, $y");
     }
-    if ($x < 0 || $x > MAP_HORIZONTAL_MAX) {
+    if ($x < 0 || $x >= MAP_HORIZONTAL_MAX) {
         $self->logger->logconfess("Attempted to get out of bounds x tile at: $x, $y");
     }
 

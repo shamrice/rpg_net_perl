@@ -77,7 +77,9 @@ do {
     } elsif ($user_inp eq "d") {
         $delta_x++;
     } elsif ($user_inp eq "q") {
-        $quit = 1;
+        $quit = confirm_quit();
+    } elsif ($user_inp eq "n") {
+        create_new_map();
     } elsif ($user_inp eq "t") {
         setup_new_tile(\%new_tile);
     } elsif ($user_inp eq " ") {
@@ -171,16 +173,35 @@ sub redraw_screen {
 }
 
 
+sub confirm_quit {
+    $scr->draw_window(15, 10, 40, 4, 0, 7, "Quit");
+    $scr->draw(17, 12, "Are you sure you want to quit? [y/N]: ", 0, 7);
+    my $confirm = lc($inp->blocking_getch());
+    
+    redraw_screen();
+
+    if ($confirm eq 'y') {
+        return 1;
+    } 
+    return 0;
+
+}
+
+sub create_new_map {
+    $scr->draw_window(20, 10, 25, 4, 0, 7, "New Map");
+    $scr->draw(22, 12, "Start new map? [y/N]: ", 0, 7);
+    my $confirm = lc($inp->blocking_getch());
+    if ($confirm eq 'y') {
+        $map->new_map();
+    } 
+    redraw_screen();
+}
+
+
 sub setup_new_tile {
     my ($new_tile) = @_;
 
-    # draw map draw area border
-    $scr->draw(15, 4, "╔═══Configure New Tile═════════════════════╗", 0, 7);
-    for my $row (1 .. 10) {
-        $scr->draw(15, 4 + $row, "║                                          ║▒", 0, 7);        
-    }
-    $scr->draw(15, 15, "╚══════════════════════════════════════════╝▒", 0, 7);
-    $scr->draw(16, 16, "▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒", 0, 7);
+    $scr->draw_window(15, 4, 41, 12, 0, 7, "Configure New Tile");
 
     $scr->draw(24, 6, "Character:", 0, 7);
     $scr->draw(17, 7, "Foreground Color:", 0, 7);
