@@ -10,6 +10,8 @@ BEGIN {
 }
 
 use Log::Log4perl qw(:easy);
+use Getopt::Long;
+use Pod::Usage;
 use Data::Dumper;
 
 use MapMaker::Screen;
@@ -24,7 +26,19 @@ use constant {
     CURSOR_VERTICAL_MIN => 2
 };
 
-Log::Log4perl->init('./MapMaker/conf/log4perl.conf');
+my $help;
+my $log_config_file = "./MapMaker/conf/log4perl.conf";
+my $map_filename = "../server/RpgServer/data/maps/0_1_0.map"; # TODO : should make blank to trigger new map
+
+GetOptions(
+    "log=s" => \$log_config_file,
+    "file=s" => \$map_filename,        
+    "help|?" => \$help         
+) or pod2usage(2);
+
+pod2usage(0) if $help;
+
+Log::Log4perl->init($log_config_file);
 
 my $log = Log::Log4perl->get_logger("MapMaker");
 
@@ -32,8 +46,7 @@ my $scr = MapMaker::Screen->new(use_term_colors => 1);
 my $inp = MapMaker::UserInput->new(screen => $scr->{screen});
 my $map = MapMaker::Map->new(screen => $scr);
 
-# TODO : load from cmd arg if exists or via load in app.
-my $map_filename = "../server/RpgServer/data/maps/0_1_0.map";
+
 $map->load_map_data($map_filename);
 
 redraw_screen();
@@ -374,3 +387,22 @@ sub is_in_bounds {
     return 1;
 
 }
+
+
+
+
+__END__
+ 
+=head1 NAME
+ 
+MapMaker - Utility for creating map data
+ 
+=head1 SYNOPSIS
+ 
+MapMaker [options] 
+ 
+ Options:
+   --help           display help and exit
+   --file           load file at start up
+   --log            specify log config file (Default ./MapMaker/conf/log4perl.conf)
+
