@@ -87,6 +87,8 @@ do {
         $new_tile{y} = $cursor_info{y} - 2;
         $map->set_tile(%new_tile);
         $scr->draw_tile(%new_tile);
+    } elsif ($user_inp eq '$') {
+        save_current_map();        
     }
 
 
@@ -186,6 +188,30 @@ sub confirm_quit {
     return 0;
 
 }
+
+
+sub save_current_map {
+
+    $scr->draw_window(20, 5, 30, 6, 0, 7, "Save Map");
+    $scr->draw(25, 7, "Save current map? [y/N]:", 0, 7);
+    my $confirm = lc($inp->blocking_getch());
+    if ($confirm eq "y") {
+        $scr->draw(25, 8, "File name: ", 0, 7);
+        $scr->set_cursor(36, 8);
+        my $filename = $inp->get_string_input();
+
+        if ($map->save_map_data($filename)) {
+            $scr->draw(32, 10, "Saved!", 2, 7, 1);
+            $inp->blocking_getch();
+        } else {
+            $scr->draw(27, 10, "Failed to save map.", 1, 7, 1);
+            $inp->blocking_getch();
+        }
+    }
+    redraw_screen();
+;
+}
+
 
 sub create_new_map {
     $scr->draw_window(20, 10, 25, 4, 0, 7, "New Map");

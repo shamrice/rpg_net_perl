@@ -59,6 +59,39 @@ sub new_map {
     
 }
 
+sub save_map_data {
+    my ($self, $map_file_name) = @_;
+
+    if ($map_file_name eq "") {
+        return 0;
+    }
+
+    open(my $MAP_FH, '>', $map_file_name) or do {
+        $self->logger->error("Failed to open output map file: $map_file_name :: $!");
+        return;
+    };
+
+    foreach my $row (0..MAP_VERTICAL_MAX - 1) {
+        my $row_data = "";
+        foreach my $column (0..MAP_HORIZONTAL_MAX - 1) { 
+            $row_data .= $self->map_data->{$row}{$column}{tile_id} . 
+                "," . 
+                $self->map_data->{$row}{$column}{attr} . 
+                "," . 
+                $self->map_data->{$row}{$column}{fg_color} . 
+                "," . 
+                $self->map_data->{$row}{$column}{bg_color} .
+                "|"            
+        }
+        $row_data .= "!";
+        $self->logger->info($row_data);
+        print $MAP_FH "$row_data\n";
+    }
+
+    close($MAP_FH);
+    return 1;
+}
+
 sub load_map_data {
     my ($self, $map_file_name) = @_;
 
