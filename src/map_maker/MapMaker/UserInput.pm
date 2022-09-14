@@ -38,7 +38,7 @@ sub get_string_input {
         } elsif ($cur_char eq "kl") {
             chop($output_str);
         }
-    } while ($cur_char ne "\r");
+    } until ($cur_char eq "\r");
     
     chomp($output_str);    
 

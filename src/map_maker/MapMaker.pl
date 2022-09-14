@@ -111,9 +111,6 @@ do {
 
     }
 
-   # $scr->set_cursor($cursor_info{x}, $cursor_info{y});
-   # $scr->draw($cursor_info{x}, $cursor_info{y}, $cursor_info{cursor}, 15, $map->get_background_color($cursor_info{x} - 1, $cursor_info{y} - 2));
-
     my %tile = $map->get_tile_hash_at_cursor($cursor_info{x}, $cursor_info{y});
 
     $scr->draw_repeat(95, 3, " ", 0, 0, 20);
@@ -127,7 +124,17 @@ do {
 
     $scr->clear_line(25);
     $scr->set_cursor(1, 25);
-    say "NEW TILE X,Y: (" . $new_tile{x} . "," . $new_tile{y} . ") CHAR: " . $new_tile{char} . " FG: " . $new_tile{fg_color} . " BG : " . $new_tile{bg_color} . " ATTR: " . $new_tile{attr};
+
+    $scr->draw(1, 25, 
+        "NEW TILE CHAR:   FG: " . 
+        $new_tile{fg_color} . 
+        " BG : " . $new_tile{bg_color} . 
+        " ATTR: " . $new_tile{attr} .
+        " (" . $map->get_attribute_name($new_tile{attr}) . ")",
+        7, 0
+    );    
+    $scr->draw(16, 25, $new_tile{char}, $new_tile{fg_color}, $new_tile{bg_color});    
+    
 
     $frame++;
     if ($frame > 1) {
@@ -144,7 +151,7 @@ do {
     $scr->draw_tile(%tile);
      
    
-} while (!$quit);
+} until ($quit);
 
 
 $scr->refresh;
@@ -283,7 +290,7 @@ sub setup_new_tile {
         } else {
             $fg_valid = 1;
         }
-    } while (!$fg_valid);
+    } until ($fg_valid);
 
     $scr->draw(15, 11, "║                                          ║▒", 0, 7);   
     $scr->draw(40, 7, $new_char, $fg_color, 0);
@@ -305,7 +312,7 @@ sub setup_new_tile {
         } else {
             $bg_valid = 1;
         }
-    } while (!$bg_valid);
+    } until ($bg_valid);
 
     $scr->draw(15, 11, "║                                          ║▒", 0, 7);   
     $scr->draw(40, 8, $new_char, $fg_color, $bg_color);
@@ -328,7 +335,7 @@ sub setup_new_tile {
         } else {
             $attr_valid = 1;
         }
-    } while (!$attr_valid);
+    } until ($attr_valid);
 
     $scr->draw(15, 11, "║                                          ║▒", 0, 7);   
     $scr->draw(40, 9, $map->get_attribute_name($attr), 0, 7, 1);
