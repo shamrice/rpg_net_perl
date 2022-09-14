@@ -95,6 +95,8 @@ sub save_map_data {
 sub load_map_data {
     my ($self, $map_file_name) = @_;
 
+    # TODO : Return true/false on success failure instead of hard crashing.
+
     open(my $MAP_FH, '<', $map_file_name) or confess "Failed to open map file: $map_file_name :: $!";
     chomp(my @map_rows = <$MAP_FH>);
     close($MAP_FH);

@@ -89,6 +89,8 @@ do {
         $scr->draw_tile(%new_tile);
     } elsif ($user_inp eq '$') {
         save_current_map();        
+    } elsif ($user_inp eq "o") {
+        load_existing_map();
     }
 
 
@@ -190,13 +192,34 @@ sub confirm_quit {
 }
 
 
+sub load_existing_map {
+
+    $scr->draw_window(20, 5, 30, 4, 0, 7, "Load Map");
+
+    $scr->draw(22, 7, "File name: __________________", 0, 7);
+    $scr->set_cursor(33, 7);
+    my $filename = $inp->get_string_input();
+
+    if ($filename ne "") {
+        $map->load_map_data($filename);
+        $scr->draw(32, 8, "Loaded!", 2, 7, 1);
+        $inp->blocking_getch();
+    } else {
+        $scr->draw(28, 8, "Map not loaded", 1, 7, 1);
+        $inp->blocking_getch();
+    }
+
+    redraw_screen();
+}
+
+
 sub save_current_map {
 
     $scr->draw_window(20, 5, 30, 6, 0, 7, "Save Map");
     $scr->draw(25, 7, "Save current map? [y/N]:", 0, 7);
     my $confirm = lc($inp->blocking_getch());
     if ($confirm eq "y") {
-        $scr->draw(25, 8, "File name: ", 0, 7);
+        $scr->draw(25, 8, "File name: _______________", 0, 7);
         $scr->set_cursor(36, 8);
         my $filename = $inp->get_string_input();
 
