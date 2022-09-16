@@ -34,11 +34,32 @@ has map_data => (
     is => 'rwp',
 );
 
+has map_coordinates => (
+    is => 'rwp'
+);
+
+has are_coordinates_set => (
+    is => 'rw',
+    default => 0
+);
+
 has logger => (
     is      => 'ro',
     default => sub { Log::Log4perl->get_logger("MapMaker") }
 );
 
+
+sub set_map_coordinates {
+    my ($self, $world_id, $map_x, $map_y) = @_;
+
+    $self->_set_map_coordinates({
+        world_id => $world_id,
+        map_x => $map_x,
+        map_y => $map_y
+    });
+    $self->are_coordinates_set(1);
+    $self->logger->info("Updated map coordinates to: " . Dumper \$self->{map_coordinates});
+}
 
 
 sub new_map {
@@ -54,7 +75,7 @@ sub new_map {
             };   
         }
     }
-    
+    $self->are_coordinates_set(0);
     $self->logger->info("Set up new blank map data.");
     
 }
@@ -63,13 +84,27 @@ sub save_map_data {
     my ($self, $map_file_name) = @_;
 
     if ($map_file_name eq "") {
-        return 0;
+        return;
     }
+
+    if (!$self->are_coordinates_set) {
+        $self->logger->info("Map coordinates not set. Cannot save map.");
+        return;
+    }
+
 
     open(my $MAP_FH, '>', $map_file_name) or do {
         $self->logger->error("Failed to open output map file: $map_file_name :: $!");
         return;
     };
+
+    my $map_coordinates_line = "#LOCATION=" . 
+        $self->map_coordinates->{world_id} . "," . 
+        $self->map_coordinates->{map_x} . "," . 
+        $self->map_coordinates->{map_y} . "\n";
+    
+    print $MAP_FH $map_coordinates_line;
+
 
     foreach my $row (0..MAP_VERTICAL_MAX - 1) {
         my $row_data = "";
@@ -104,6 +139,13 @@ sub load_map_data {
     my $map_y = 0;
     foreach my $row (@map_rows) {
         $row =~ s/!//;
+
+        if ($row =~ m/^#LOCATION=\d*,\d*,\d*$/) {
+            (my $location_str = $row) =~ s/^#LOCATION=//;
+            my ($world_id, $map_x, $map_y) = split(/,/, $location_str);
+            $self->logger->info("Found map location data :: world_id=$world_id : map_x=$map_x : map_y=$map_y");
+            $self->set_map_coordinates($world_id, $map_x, $map_y);
+        }
 
         if ($row =~ m/^#.*/) {
             next;

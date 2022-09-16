@@ -148,7 +148,16 @@ sub set_cursor {
 
 
 sub draw_window {
-    my ($self, $x, $y, $width, $height, $fg_color, $bg_color, $title) = @_;
+    my ($self, %window_attributes) = @_; # $x, $y, $width, $height, $fg_color, $bg_color, $title) = @_;
+
+    # TODO : not sure how I feel about how this was hacked in from param list.
+    my $x = $window_attributes{x};
+    my $y = $window_attributes{y};
+    my $width = $window_attributes{width};
+    my $height = $window_attributes{height};
+    my $fg_color = $window_attributes{fg_color};
+    my $bg_color = $window_attributes{bg_color};
+    my $title = $window_attributes{title};
 
     if (not defined $fg_color) {
         $fg_color = 0;

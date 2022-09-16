@@ -1,12 +1,14 @@
 #!/usr/bin/perl
 package RpgClient;
 
+use lib '.';
+
 use strict;
 use warnings;
 
-BEGIN {
-    push @INC, "./";
-}
+#BEGIN {
+#    push @INC, "./";
+#}
 
 use Log::Log4perl qw(:easy);
 use Getopt::Long;

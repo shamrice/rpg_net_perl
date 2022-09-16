@@ -52,6 +52,10 @@ if ($map_filename ne "") {
     $map->new_map();
 }
 
+if (!$map->are_coordinates_set) {
+    set_map_coordinates();
+}
+
 redraw_screen();
 
 my %cursor_info = (
@@ -94,10 +98,14 @@ do {
         $delta_x++;
     } elsif ($user_inp eq "e") {
         place_new_enemy();
-    } elsif ($user_inp eq "q") {
-        $quit = confirm_quit();
     } elsif ($user_inp eq "n") {
         create_new_map();
+    } elsif ($user_inp eq "o") {
+        load_existing_map();
+    } elsif ($user_inp eq "p") {
+        set_map_coordinates();
+    } elsif ($user_inp eq "q") {
+        $quit = confirm_quit();
     } elsif ($user_inp eq "t") {
         setup_new_tile(\%new_tile);
     } elsif ($user_inp eq " ") {
@@ -107,9 +115,7 @@ do {
         $scr->draw_tile(%new_tile);
     } elsif ($user_inp eq '$') {
         save_current_map();        
-    } elsif ($user_inp eq "o") {
-        load_existing_map();
-    }
+    } 
 
 
     if ($delta_x != 0 || $delta_y != 0) {
@@ -178,6 +184,59 @@ say "Bye!";
 exit;
 
 
+
+sub set_map_coordinates {
+    $scr->draw_window(
+        x => 10,
+        y => 5,
+        width => 40, 
+        height => 8,
+        fg_color => 0,
+        bg_color => 7,
+        title => "Set Map Coordinates"        
+    );
+
+    if ($map->are_coordinates_set) {    
+        $scr->draw(12, 6, 
+            "Current coordinates: " . 
+            $map->map_coordinates->{world_id} . "," .
+            $map->map_coordinates->{map_x} . "," .
+            $map->map_coordinates->{map_y},
+            2, 7, 1
+        );
+    } else {
+        $scr->draw(16, 6, "Map coordinates not yet set!", 1, 7, 1);
+    }
+
+    $scr->draw(12, 8, "Enter new value? [y/N]", 0, 7);
+    my $confirm = lc($inp->blocking_getch());
+    if ($confirm ne "y") {
+        redraw_screen();
+        return;
+    }
+
+    $scr->draw(12, 10, "Enter w,x,y coordinates: ____________", 0, 7);
+    my $coords_valid;
+    my $new_coords = "";
+    do {
+        $scr->set_cursor(37, 10);
+        $new_coords = $inp->get_string_input();
+        $coords_valid = $new_coords =~ m/^\d+,\d+,\d+$/;
+        if (!$coords_valid) {
+            $scr->draw(37, 10, "____________", 0, 7);
+            $scr->draw(20, 11, "Not valid coordinates", 1, 7, 1);
+        }
+    } until ($coords_valid);
+
+    my ($world_id, $map_x, $map_y) = split(/,/, $new_coords);
+
+    $map->set_map_coordinates($world_id, $map_x, $map_y);
+
+    redraw_screen();
+}
+
+
+
 sub redraw_screen {
 
     my %screen_size = $scr->get_screen_size;
@@ -203,7 +262,16 @@ sub redraw_screen {
 
 
 sub confirm_quit {
-    $scr->draw_window(15, 10, 40, 4, 0, 7, "Quit");
+    $scr->draw_window(
+        x => 15,
+        y => 10,
+        width => 40, 
+        height => 4,
+        fg_color => 0,
+        bg_color => 7,
+        title => "Quit"        
+    );
+          #15, 10, 40, 4, 0, 7, "Quit");
     $scr->draw(17, 12, "Are you sure you want to quit? [y/N]: ", 0, 7);
     my $confirm = lc($inp->blocking_getch());
     
@@ -219,7 +287,16 @@ sub confirm_quit {
 
 sub load_existing_map {
 
-    $scr->draw_window(20, 5, 30, 4, 0, 7, "Load Map");
+    $scr->draw_window(
+        x => 20,
+        y => 5,
+        width => 30, 
+        height => 4,
+        fg_color => 0,
+        bg_color => 7,
+        title => "Load Map"        
+    );
+        #20, 5, 30, 4, 0, 7, "Load Map");
 
     $scr->draw(22, 7, "File name: __________________", 0, 7);
     $scr->set_cursor(33, 7);
@@ -240,7 +317,16 @@ sub load_existing_map {
 
 sub save_current_map {
 
-    $scr->draw_window(20, 5, 30, 6, 0, 7, "Save Map");
+    $scr->draw_window(
+        x => 20,
+        y => 5,
+        width => 30, 
+        height => 6,
+        fg_color => 0,
+        bg_color => 7,
+        title => "Save Map"        
+    );
+        #20, 5, 30, 6, 0, 7, "Save Map");
     $scr->draw(25, 7, "Save current map? [y/N]:", 0, 7);
     my $confirm = lc($inp->blocking_getch());
     if ($confirm eq "y") {
@@ -262,12 +348,23 @@ sub save_current_map {
 
 
 sub create_new_map {
-    $scr->draw_window(20, 10, 25, 4, 0, 7, "New Map");
+    $scr->draw_window(
+        x => 20,
+        y => 10,
+        width => 25,
+        height => 4,
+        fg_color => 0,
+        bg_color => 7,
+        title => "New Map"        
+    );
+
+        #20, 10, 25, 4, 0, 7, "New Map");
     $scr->draw(22, 12, "Start new map? [y/N]: ", 0, 7);
     my $confirm = lc($inp->blocking_getch());
     if ($confirm eq 'y') {
         $map->new_map();
     } 
+    set_map_coordinates();
     redraw_screen();
 }
 
@@ -275,7 +372,16 @@ sub create_new_map {
 sub setup_new_tile {
     my ($new_tile) = @_;
 
-    $scr->draw_window(15, 4, 41, 12, 0, 7, "Configure New Tile");
+    $scr->draw_window(
+        x => 15,
+        y => 4,
+        width => 41, 
+        height => 12,
+        fg_color => 0,
+        bg_color => 7,
+        title => "Configure New Tile"        
+    );
+        #15, 4, 41, 12, 0, 7, "Configure New Tile");
 
     $scr->draw(24, 6, "Character:", 0, 7);
     $scr->draw(17, 7, "Foreground Color:", 0, 7);
