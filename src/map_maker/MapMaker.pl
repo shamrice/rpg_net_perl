@@ -1,13 +1,10 @@
 #!/usr/bin/perl
 
+use lib '.';
+
 use strict;
 use warnings; 
-
 use feature qw(say);
-
-BEGIN {
-    push @INC, "./";
-}
 
 use Log::Log4perl qw(:easy);
 use Getopt::Long;
@@ -17,6 +14,8 @@ use Data::Dumper;
 use MapMaker::Screen;
 use MapMaker::UserInput;
 use MapMaker::Map;
+use MapMaker::Enemy;
+
 
 use constant {
     CURSOR_DEFAULT => "+",
@@ -28,7 +27,7 @@ use constant {
 
 my $help;
 my $log_config_file = "./MapMaker/conf/log4perl.conf";
-my $map_filename = "../server/RpgServer/data/maps/0_1_0.map"; # TODO : should make blank to trigger new map
+my $map_filename = ""; # "../server/RpgServer/data/maps/0_1_0.map"; # TODO : should make blank to trigger new map
 
 GetOptions(
     "log=s" => \$log_config_file,
@@ -45,9 +44,13 @@ my $log = Log::Log4perl->get_logger("MapMaker");
 my $scr = MapMaker::Screen->new(use_term_colors => 1);
 my $inp = MapMaker::UserInput->new(screen => $scr->{screen});
 my $map = MapMaker::Map->new(screen => $scr);
+my $enemy = MapMaker::Enemy->new();
 
-
-$map->load_map_data($map_filename);
+if ($map_filename ne "") {
+    $map->load_map_data($map_filename);
+} else {
+    $map->new_map();
+}
 
 redraw_screen();
 
@@ -89,6 +92,8 @@ do {
         $delta_x--;
     } elsif ($user_inp eq "d") {
         $delta_x++;
+    } elsif ($user_inp eq "e") {
+        place_new_enemy();
     } elsif ($user_inp eq "q") {
         $quit = confirm_quit();
     } elsif ($user_inp eq "n") {
@@ -371,6 +376,11 @@ sub setup_new_tile {
     redraw_screen();
 }
 
+
+
+sub place_new_enemy {
+    $enemy->add_enemy(name => "Enemy1", token => "@", x => 14, y => 20);
+}
 
 
 sub is_in_bounds {
