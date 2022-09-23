@@ -262,10 +262,10 @@ put '/rest/user/:id' => sub {
         };  
         return $self->render(json => $error_response, status => 401);
     }    
-
+ 
     my $data = decode_json($self->req->body);
     $log->trace("JSON data: " . Dumper \$data);     
-    
+
     my $name = $data->{'name'};
     my $user_char = $data->{'user_char'};
     my $world_id = $data->{'world_id'};

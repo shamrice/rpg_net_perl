@@ -26,6 +26,7 @@ sub main {
     
     my $player_name;
     my $player_token;
+    my $world_id = 0;
     my $help;
     my $man_page;
     my $config_file = "$FindBin::Bin/RpgClient/conf/client.conf";
@@ -34,6 +35,7 @@ sub main {
     GetOptions(
         "name=s" => \$player_name,
         "token=s" => \$player_token,
+        "world_id=s" => \$world_id,
         "config=s" => \$config_file,
         "help|?" => \$help,        
         "man" => \$man_page,        
@@ -61,7 +63,7 @@ sub main {
     }
     
 
-    my $user = RpgClient::User->new(name => $player_name, user_char => $player_token);
+    my $user = RpgClient::User->new(name => $player_name, user_char => $player_token, world_id => $world_id);
     my %user_list = ($user->id => $user);
 
     my $net = RpgClient::IO::Network->new(user => $user, config => $config->{network});    

@@ -2,12 +2,12 @@ package RpgClient::Engine;
 
 use Data::Dumper;
 
-use feature qw(say switch);
+use feature qw(say switch); # TODO : Stop using given/when
 use Time::HiRes qw(time);
 
 use Moo;
 
-no warnings qw( experimental::smartmatch );
+no warnings qw( experimental::smartmatch ); # TODO : remove when given/when is removed.
 
 
 has user => (
@@ -174,7 +174,7 @@ sub run {
 sub update_and_draw_players {
     my $self = shift;
 
-    $self->net->get_players(0, $self->user->map_x, $self->user->map_y, $self->user_list); # or die "ERROR: User does not exist in current list of users";
+    $self->net->get_players($self->user->world_id, $self->user->map_x, $self->user->map_y, $self->user_list); # or die "ERROR: User does not exist in current list of users";
 
     my %user_list = %{$self->user_list};
    
@@ -264,6 +264,8 @@ sub draw_debug_user_list {
         $self->scr->draw(81, $y, "name=".$self->user_list->{$user}->name);
         $y++;
         $self->scr->draw(81, $y, "user_char=".$self->user_list->{$user}->user_char);
+        $y++;
+        $self->scr->draw(81, $y, "world_id=".$self->user_list->{user}->world_id);
         $y++;
         $self->scr->draw(81, $y, "map_x=".$self->user_list->{$user}->map_x);
         $y++;
