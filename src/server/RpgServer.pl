@@ -51,7 +51,7 @@ my $chat_service = RpgServer::ChatService->new(config => $config->{chat_service}
 my @map = load_map_data(); 
 load_enemy_data(); 
  
-
+ 
 sub load_map_data {
 
     my @map = ( );
@@ -116,12 +116,13 @@ sub load_enemy_data {
             my $id = $data->{'id'} ;
             my $name = $data->{'name'};
             my $user_char = $data->{'user_char'};
+            my $world_id = $data->{'world_id'};
             my $map_x = $data->{'map_x'};
             my $map_y = $data->{'map_y'};
             my $x = $data->{'x'};
             my $y = $data->{'y'};
   
-            $user_service->add_user($id, $name, $user_char, $map_x, $map_y, $x, $y);
+            $user_service->add_user($id, $name, $user_char, $world_id, $map_x, $map_y, $x, $y);
         }
     }
     
@@ -145,13 +146,14 @@ post '/rest/user/add/:id' => sub {
     $log->info("JSON data: $data");     
     my $name = $data->{'name'};
     my $user_char = $data->{'user_char'};
+    my $world_id = $data->{'world_id'};
     my $map_x = $data->{'map_x'};
     my $map_y = $data->{'map_y'};
     my $x = $data->{'x'};
     my $y = $data->{'y'};
      
  
-    if (!$user_service->add_user($id, $name, $user_char, $map_x, $map_y, $x, $y)) {         
+    if (!$user_service->add_user($id, $name, $user_char, $world_id, $map_x, $map_y, $x, $y)) {         
         my $error_response = {
             id => $id, 
             status => "User already added", 
@@ -262,15 +264,17 @@ put '/rest/user/:id' => sub {
     }    
 
     my $data = decode_json($self->req->body);
-    $log->info("JSON data: $data");     
+    $log->trace("JSON data: " . Dumper \$data);     
+    
     my $name = $data->{'name'};
     my $user_char = $data->{'user_char'};
+    my $world_id = $data->{'world_id'};
     my $map_x = $data->{'map_x'};
     my $map_y = $data->{'map_y'};
     my $x = $data->{'x'};
     my $y = $data->{'y'};
-
-    if ($user_service->update_user($id, $name, $user_char, $map_x, $map_y, $x, $y)) {
+ 
+    if ($user_service->update_user($id, $name, $user_char, $world_id, $map_x, $map_y, $x, $y)) {
         my $response = {
             userId => $id, 
             status => "Success",
@@ -459,7 +463,7 @@ get '/' => sub {
 
 $log->info("Server starting up");
 app->start;
-
+ 
 
 __DATA__
 @@ index.html.ep

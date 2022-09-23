@@ -3,6 +3,7 @@
         "id": "BBCDEF0D-0624-3EFB-BB86-66D55AADED58",
         "name": "VILLAGER",
         "user_char": "P",
+        "world_id": 0,
         "map_x": 1,
         "map_y": 0,
         "x": 10,

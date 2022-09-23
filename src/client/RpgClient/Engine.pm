@@ -114,11 +114,11 @@ sub run {
             if (!$self->map->handle_map_interaction($self->user) && !$self->check_player_collision) {                               
 
                 if ($self->user->needs_map_load) {
-                    $self->logger->info("needs_map_load == true : Loading new map: " . $self->user->map_x . "," . $self->user->map_y);
+                    $self->logger->info("needs_map_load == true : Loading new map: " . $self->user->world_id . "," . $self->user->map_x . "," . $self->user->map_y);
                     $self->load_current_map;
                 } 
 
-                if ($self->net->update_user($self->user->map_x, $self->user->map_y, $self->user->x, $self->user->y)) {
+                if ($self->net->update_user($self->user->world_id, $self->user->map_x, $self->user->map_y, $self->user->x, $self->user->y)) {
                     
 
                     # TODO : include all draws together
@@ -299,7 +299,7 @@ sub handle_death {
 sub load_current_map {
     my $self = shift;
 
-    my $map_data_raw = $self->net->get_map(0, $self->user->map_x, $self->user->map_y);   
+    my $map_data_raw = $self->net->get_map($self->user->world_id, $self->user->map_x, $self->user->map_y);   
     
     $self->map->set_map_data($map_data_raw);
     $self->map->draw_map;  
@@ -316,7 +316,7 @@ sub load_current_map {
         $self->map->get_background_color($self->user->x, $self->user->y)
     );  
 
-    $self->logger->info("Map : " . $self->user->map_x . "," . $self->user->map_y . " has been loaded.");
+    $self->logger->info("Map : " . $self->user->world_id . "," . $self->user->map_x . "," . $self->user->map_y . " has been loaded.");
     $self->user->needs_map_load(0);
 
 }

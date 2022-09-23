@@ -91,6 +91,7 @@ sub add_user {
         id => $self->{user}->id,
         name => $self->{user}->name,
         user_char => $self->{user}->user_char,
+        world_id => $self->{user}->world_id,
         map_x => $self->{user}->map_x,
         map_y => $self->{user}->map_y,
         x => $self->{user}->x,
@@ -116,7 +117,7 @@ sub add_user {
 
 
 sub update_user {
-    my ($self, $map_x, $map_y, $x, $y, $name, $user_char) = @_;
+    my ($self, $world_id, $map_x, $map_y, $x, $y, $name, $user_char) = @_;
 
     my $username = $self->user->id;
     my $password = $self->token;
@@ -131,6 +132,9 @@ sub update_user {
         id => $self->user->id
     };
 
+    if (defined $world_id) {
+        $req_body->{world_id} = $world_id;
+    }
     if (defined $map_x) {
         $req_body->{map_x} = $map_x;
     }
@@ -219,6 +223,7 @@ sub get_players {
             $user_to_update = RpgClient::User->new(              
                 name => $user->{name},
                 user_char => $user->{user_char},
+                world_id => $user->{world_id},
                 map_x => $user->{map_x},
                 map_y => $user->{map_y},
                 x => $user->{x},
@@ -233,7 +238,7 @@ sub get_players {
             $old_y = $user_to_update->y; 
 
             my $needs_redraw = ($old_x != $user->{x} || $old_y != $user->{y});
-
+            $user_to_update->world_id($user->{world_id});
             $user_to_update->map_x($user->{map_x});
             $user_to_update->map_y($user->{map_y});
             $user_to_update->x($user->{x});

@@ -44,7 +44,7 @@ sub activity_timeout_checker {
 
 
 sub add_user {
-    my ($self, $id, $name, $user_char, $map_x, $map_y, $x, $y) = @_;
+    my ($self, $id, $name, $user_char, $world_id, $map_x, $map_y, $x, $y) = @_;
 
     # TODO : validate that the values sent in are sane / valid.
  
@@ -52,6 +52,7 @@ sub add_user {
         id => $id, 
         name => $name, 
         user_char => $user_char, 
+        world_id => $world_id,
         map_x => $map_x,
         map_y => $map_y,
         x => $x, 
@@ -77,7 +78,7 @@ sub add_user {
 
 
 sub update_user {
-    my ($self, $id, $name, $user_char, $map_x, $map_y, $x, $y) = @_;
+    my ($self, $id, $name, $user_char, $world_id, $map_x, $map_y, $x, $y) = @_;
     
     # TODO : validate that the values sent in are sane / valid.
 
@@ -86,9 +87,9 @@ sub update_user {
         return 0;        
     }
  
-    $log->info("Updating user id: $id :: map_x: $map_x : map_y: $map_y : x: $x : y: $y name: $name : user_char: $user_char ");
+    $log->info("Updating user id: $id :: world_id: $world_id :: map_x: $map_x : map_y: $map_y : x: $x : y: $y name: $name : user_char: $user_char ");
        
-    $user_hash{$id}->update($map_x, $map_y, $x, $y, $name, $user_char);
+    $user_hash{$id}->update($world_id, $map_x, $map_y, $x, $y, $name, $user_char);
     return 1;
 }
 
@@ -116,6 +117,7 @@ sub get_users {
             id => $found_user->id, 
             name => $found_user->name,
             user_char => $found_user->user_char,
+            world_id => $found_user->world_id,
             map_x => $found_user->map_x,
             map_y => $found_user->map_y,
             x => $found_user->x,
@@ -135,7 +137,7 @@ sub get_users_at {
 
         my $found_user = $user_hash{$user_id};
 
-        if ($found_user->map_x == $map_x && $found_user->map_y == $map_y) {
+        if ($found_user->world_id == $world_id && $found_user->map_x == $map_x && $found_user->map_y == $map_y) {
 
             my $found_user_id = $found_user->id;
             $log->info("Found user: ".$found_user->to_string);
@@ -145,6 +147,7 @@ sub get_users_at {
                 id => $found_user->id, 
                 name => $found_user->name,
                 user_char => $found_user->user_char,
+                world_id => $found_user->world_id,
                 map_x => $found_user->map_x,
                 map_y => $found_user->map_y,
                 x => $found_user->x,

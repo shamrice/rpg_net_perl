@@ -28,6 +28,11 @@ has y => (
     required => 1
 );
 
+has world_id => (
+    is => 'rwp',
+    required => 1
+);
+
 has map_x => (
     is => 'rwp',
     required => 1
@@ -50,7 +55,11 @@ sub BUILD {
 
 
 sub update {
-    my ($self, $map_x, $map_y, $x, $y, $name, $user_char) = @_;
+    my ($self, $world_id, $map_x, $map_y, $x, $y, $name, $user_char) = @_;
+
+    if (defined $world_id) {
+        $self->_set_world_id($world_id);
+    }
 
     if (defined $map_x) {        
         $self->_set_map_x($map_x);        
@@ -80,13 +89,14 @@ sub to_string {
     my $id = $self->id;
     my $name = $self->name;
     my $user_char = $self->user_char;
+    my $world_id = $self->world_id;
     my $map_x = $self->map_x;
     my $map_y = $self->map_y;
     my $x = $self->x;
     my $y = $self->y;
     my $last_activity = $self->last_activity;
 
-    return "User id: $id :: name: $name :: user_char: $user_char :: map_x: $map_x :: map_y: $map_y x: $x :: y: $y :: last_activity: $last_activity";
+    return "User id: $id :: name: $name :: user_char: $user_char :: world_id: $world_id :: map_x: $map_x :: map_y: $map_y x: $x :: y: $y :: last_activity: $last_activity";
 }
 
 1;

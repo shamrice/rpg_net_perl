@@ -30,6 +30,11 @@ has y => (
     default => int(rand(19)) + 1
 );
 
+has world_id => (
+    is => 'rw',
+    default => 0
+);
+
 has map_x => (
     is => 'rw',
     default => 0
@@ -175,13 +180,14 @@ sub to_string {
     my $id = $self->id;
     my $name = $self->name;
     my $user_char = $self->user_char;
+    my $world_id = $self->world_id;
     my $map_x = $self->map_x;
     my $map_y = $self->map_y;
     my $x = $self->x;
     my $y = $self->y;
     my $status = $self->status;
 
-    return "User id: $id :: name: $name :: user_char: $user_char :: map_x: $map_x :: map_y: $map_y x: $x :: y: $y :: status: $status";
+    return "User id: $id :: name: $name :: user_char: $user_char :: world_id: $world_id :: map_x: $map_x :: map_y: $map_y x: $x :: y: $y :: status: $status";
 }
 
 

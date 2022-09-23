@@ -3,6 +3,7 @@
         "id": "ABCDEF0D-0624-3EFB-BB86-66D55AADED58",
         "name": "BRIGAND",
         "user_char": "%",
+        "world_id": 0,
         "map_x": 0,
         "map_y": 1,
         "x": 30,
