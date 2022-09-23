@@ -4,3 +4,4 @@ requires 'Mojolicious', '9.26';
 requires 'Moo', '2.005004';
 requires 'Config::Tiny', '2.28';
 requires 'Log::Log4perl', '1.56';
+requires 'FindBin', '1.52';

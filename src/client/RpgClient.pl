@@ -1,18 +1,15 @@
 #!/usr/bin/perl
 package RpgClient;
 
-use lib '.';
-
 use strict;
 use warnings;
-
-#BEGIN {
-#    push @INC, "./";
-#}
 
 use Log::Log4perl qw(:easy);
 use Getopt::Long;
 use Pod::Usage;
+use FindBin;
+
+use lib "$FindBin::Bin/";
 
 use RpgClient::IO::UserInput;
 use RpgClient::IO::Screen;
@@ -22,7 +19,7 @@ use RpgClient::Map;
 use RpgClient::Engine;
 use RpgClient::Configuration;
 
-Log::Log4perl->init('./RpgClient/conf/log4perl.conf');
+Log::Log4perl->init("$FindBin::Bin/RpgClient/conf/log4perl.conf");
 
 
 sub main { 
@@ -31,7 +28,7 @@ sub main {
     my $player_token;
     my $help;
     my $man_page;
-    my $config_file = "./RpgClient/conf/client.conf";
+    my $config_file = "$FindBin::Bin/RpgClient/conf/client.conf";
     
 
     GetOptions(

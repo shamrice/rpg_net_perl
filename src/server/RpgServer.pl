@@ -5,17 +5,14 @@ use feature qw(say);
 use strict;
 use warnings;
 
-
-BEGIN {
-    push @INC, "./";
-}
-
-
 use Mojolicious::Lite; 
 use Mojo::JSON qw(encode_json decode_json);
 use Compress::LZW;
 use MIME::Base64;
 use Data::Dumper;
+use FindBin;
+
+use lib "$FindBin::Bin/";
 
 use RpgServer::Configuration;
 use RpgServer::AuthorizationService; 
@@ -33,8 +30,8 @@ use RpgServer::ChatService;
 my $log = Mojo::Log->new;
 
 $log->debug("Server started with command line: $0 @ARGV");
-
-my $config_file = "./RpgServer/conf/server.conf";
+ 
+my $config_file = "$FindBin::Bin/RpgServer/conf/server.conf";
 my $dump_config = 0;
 if (defined $ENV{RPG_SERVER_CONFIG}) {
     $config_file = $ENV{RPG_SERVER_CONFIG};
@@ -53,7 +50,7 @@ my $chat_service = RpgServer::ChatService->new(config => $config->{chat_service}
  
 my @map = load_map_data(); 
 load_enemy_data(); 
-
+ 
 
 sub load_map_data {
 

@@ -1,7 +1,4 @@
 #!/usr/bin/perl
-
-use lib '.';
-
 use strict;
 use warnings; 
 use feature qw(say);
@@ -10,6 +7,9 @@ use Log::Log4perl qw(:easy);
 use Getopt::Long;
 use Pod::Usage;
 use Data::Dumper;
+use FindBin;
+
+use lib "$FindBin::Bin/";
 
 use MapMaker::Screen;
 use MapMaker::UserInput;
@@ -26,7 +26,7 @@ use constant {
 };
 
 my $help;
-my $log_config_file = "./MapMaker/conf/log4perl.conf";
+my $log_config_file = "$FindBin::Bin/MapMaker/conf/log4perl.conf";
 my $map_filename = ""; # "../server/RpgServer/data/maps/0_1_0.map"; # TODO : should make blank to trigger new map
 
 GetOptions(
