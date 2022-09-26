@@ -44,7 +44,7 @@ my $log = Log::Log4perl->get_logger("MapMaker");
 my $scr = MapMaker::Screen->new(use_term_colors => 1);
 my $inp = MapMaker::UserInput->new(screen => $scr->{screen});
 my $map = MapMaker::Map->new(screen => $scr);
-my $enemy = MapMaker::Enemy->new();
+# my $enemy = MapMaker::Enemy->new();
 
 if ($map_filename ne "") {
     $map->load_map_data($map_filename);
@@ -129,7 +129,15 @@ do {
             $cursor_info{x} += $delta_x;
             $cursor_info{y} += $delta_y;
 
-            my %tile = $map->get_tile_hash_at_cursor($cursor_info{old_x}, $cursor_info{old_y});         
+            my %tile = $map->get_tile_hash_at_cursor($cursor_info{old_x}, $cursor_info{old_y});     
+
+            # draw enemy if was placed on top of tile walked on.
+            my $enemy_token = $map->enemies->get_enemy_at_cursor($cursor_info{old_x}, $cursor_info{old_y});
+            if (defined $enemy_token) {
+                $tile{char} = $enemy_token;
+                $tile{fg_color} = 15;
+            }
+
             $scr->draw_tile(%tile);
         }
 
@@ -483,9 +491,116 @@ sub setup_new_tile {
 }
 
 
+sub setup_new_enemy {
+
+    $scr->draw_window(
+        x => 15,
+        y => 4,
+        width => 41, 
+        height => 12,
+        fg_color => 0,
+        bg_color => 7,
+        title => "Configure New Tile"        
+    );
+        #15, 4, 41, 12, 0, 7, "Configure New Tile");
+
+    $scr->draw(24, 6, "Character:", 0, 7);
+    $scr->draw(17, 7, "Foreground Color:", 0, 7);
+    $scr->draw(17, 8, "Background Color:", 0, 7);
+    $scr->draw(24, 9, "Attribute:", 0, 7);
+
+    $scr->set_cursor(35, 6);
+    $scr->echo(1);
+    
+    my $new_char = $inp->blocking_getch;
+    if ($new_char eq "") {
+        $new_char = " ";
+    }
+    
+    
+    my $fg_color;
+    my $fg_valid = 0;
+    do { 
+        
+        $scr->draw(15, 7, "║                                          ║▒", 0, 7);   
+        $scr->draw(17, 7, "Foreground Color:", 0, 7);
+
+        $scr->set_cursor(35, 7);
+        $fg_color = $inp->get_string_input;        
+
+        if ($fg_color !~ m/^[0-9]+$/) {
+            $scr->draw(20, 11, "Please enter a number between 0-255", 1, 7, 1);        
+        } elsif ($fg_color < 0 || $fg_color > 255) {
+            $scr->draw(20, 11, "Please enter a number between 0-255", 1, 7, 1);        
+        } else {
+            $fg_valid = 1;
+        }
+    } until ($fg_valid);
+
+    $scr->draw(15, 11, "║                                          ║▒", 0, 7);   
+    $scr->draw(40, 7, $new_char, $fg_color, 0);
+
+    my $bg_color;
+    my $bg_valid = 0;
+    do { 
+        
+        $scr->draw(15, 8, "║                                          ║▒", 0, 7);   
+        $scr->draw(17, 8, "Background Color:", 0, 7);
+
+        $scr->set_cursor(35, 8);
+        $bg_color = $inp->get_string_input;        
+
+        if ($bg_color !~ m/^[0-9]+$/) {
+            $scr->draw(20, 11, "Please enter a number between 0-255", 1, 7, 1);        
+        } elsif ($bg_color < 0 || $bg_color > 255) {
+            $scr->draw(20, 11, "Please enter a number between 0-255", 1, 7, 1);        
+        } else {
+            $bg_valid = 1;
+        }
+    } until ($bg_valid);
+
+    $scr->draw(15, 11, "║                                          ║▒", 0, 7);   
+    $scr->draw(40, 8, $new_char, $fg_color, $bg_color);
+
+
+    my $attr;
+    my $attr_valid = 0;
+    do { 
+        
+        $scr->draw(15, 9, "║                                          ║▒", 0, 7);   
+        $scr->draw(24, 9, "Attribute:", 0, 7);
+
+        $scr->set_cursor(35, 9);
+        $attr = $inp->get_string_input;        
+
+        if ($attr !~ m/^[0-9]+$/) {
+            $scr->draw(20, 11, "Please enter a number between 0-255", 1, 7, 1);        
+        } elsif ($attr < 0 || $attr > 255) {
+            $scr->draw(20, 11, "Please enter a number between 0-255", 1, 7, 1);        
+        } else {
+            $attr_valid = 1;
+        }
+    } until ($attr_valid);
+
+    $scr->draw(15, 11, "║                                          ║▒", 0, 7);   
+    $scr->draw(40, 9, $map->get_attribute_name($attr), 0, 7, 1);
+
+
+    $scr->draw(25, 11, "New Tile: ", 0, 7);
+    $scr->draw(35, 11, $new_char, $fg_color, $bg_color);
+    $scr->draw(20, 12, "Use these settings [y/n]", 0, 7, 1);
+
+    my $confirm = $inp->blocking_getch;
+
+
+    redraw_screen();
+}
+
 
 sub place_new_enemy {
-    $enemy->add_enemy(name => "Enemy1", token => "@", x => 14, y => 20);
+
+    $map->enemies->add_enemy(name => "Enemy1", user_char => "@", x => 25, y => 15);    
+    redraw_screen();
 }
 
 

@@ -8,6 +8,8 @@ use Carp;
 
 use Moo;
 
+use MapMaker::Enemy;
+
 use constant {
     MAP_VERTICAL_MAX => 20,
     MAP_HORIZONTAL_MAX => 80,
@@ -43,6 +45,11 @@ has are_coordinates_set => (
     default => 0
 );
 
+has enemies => (
+    is => 'ro', 
+    default => sub { MapMaker::Enemy->new; }   
+);
+
 has logger => (
     is      => 'ro',
     default => sub { Log::Log4perl->get_logger("MapMaker") }
@@ -57,6 +64,9 @@ sub set_map_coordinates {
         map_x => $map_x,
         map_y => $map_y
     });
+
+    $self->enemies->update_world_id($world_id);
+
     $self->are_coordinates_set(1);
     $self->logger->info("Updated map coordinates to: " . Dumper \$self->{map_coordinates});
 }
@@ -97,6 +107,9 @@ sub save_map_data {
         $self->logger->error("Failed to open output map file: $map_file_name :: $!");
         return;
     };
+
+    return unless $self->enemies->save_enemy_data($map_file_name . ".json");
+
 
     my $map_coordinates_line = "#LOCATION=" . 
         $self->map_coordinates->{world_id} . "," . 
@@ -198,6 +211,14 @@ sub draw_map {
             }
         }
     }
+
+
+    my %enemies_to_draw = $self->enemies->enemy_hash->%*;
+    foreach my $enemy_id (keys %enemies_to_draw) {
+        $self->logger->info("Drawing enemy: " . Dumper \$enemies_to_draw{$enemy_id});
+        my $bg_color = $self->get_background_color($enemies_to_draw{$enemy_id}{x}, $enemies_to_draw{$enemy_id}{y});
+        $self->screen->draw($enemies_to_draw{$enemy_id}{x}, $enemies_to_draw{$enemy_id}{y}, $enemies_to_draw{$enemy_id}{user_char}, 15, $bg_color);
+    }
 }
 
 sub get_background_color {
@@ -277,7 +298,7 @@ sub get_tile_hash_at_cursor {
         return;
     }
 
-    my $tile = $self->map_data->{$y}{$x};
+    my $tile = $self->map_data->{$y}{$x};    
 
     # $self->logger->trace("Tile: " . Dumper \$tile);
 
