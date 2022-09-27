@@ -75,6 +75,14 @@ my %new_tile = (
     attr => 0
 );
 
+my %new_enemy = (
+    x => 0,
+    y => 0,
+    name => "UNSET",
+    user_char => "?",
+    attr => 0
+);
+
 my $frame = 0;
 
 $scr->echo(0);
@@ -97,7 +105,9 @@ do {
     } elsif ($user_inp eq "d") {
         $delta_x++;
     } elsif ($user_inp eq "e") {
-        place_new_enemy();
+        place_new_enemy($cursor_info{x}, $cursor_info{y});
+    } elsif ($user_inp eq "E") {
+        setup_new_enemy();
     } elsif ($user_inp eq "n") {
         create_new_map();
     } elsif ($user_inp eq "o") {
@@ -497,17 +507,18 @@ sub setup_new_enemy {
         x => 15,
         y => 4,
         width => 41, 
-        height => 12,
+        height => 10,
         fg_color => 0,
         bg_color => 7,
-        title => "Configure New Tile"        
+        title => "Configure Enemy"        
     );
-        #15, 4, 41, 12, 0, 7, "Configure New Tile");
+    
 
-    $scr->draw(24, 6, "Character:", 0, 7);
-    $scr->draw(17, 7, "Foreground Color:", 0, 7);
-    $scr->draw(17, 8, "Background Color:", 0, 7);
-    $scr->draw(24, 9, "Attribute:", 0, 7);
+    $scr->draw(24, 6, "Character:", 0, 7); 
+    $scr->draw(23, 7, "Enemy Name:", 0, 7);   
+    $scr->draw(23, 8, "Hit Points:", 0, 7);
+    $scr->draw(20, 9, "Attack Damage:", 0, 7);
+    $scr->draw(23, 10, "Attributes: ", 0, 7);
 
     $scr->set_cursor(35, 6);
     $scr->echo(1);
@@ -517,60 +528,79 @@ sub setup_new_enemy {
         $new_char = " ";
     }
     
-    
-    my $fg_color;
-    my $fg_valid = 0;
-    do { 
-        
-        $scr->draw(15, 7, "║                                          ║▒", 0, 7);   
-        $scr->draw(17, 7, "Foreground Color:", 0, 7);
+    my $name;
+    my $name_valid = 0;
+    do {         
+
+        $scr->draw(15, 7, "║                                          ║▒", 0, 7);
+        $scr->draw(23, 7, "Enemy Name:", 0, 7);
 
         $scr->set_cursor(35, 7);
-        $fg_color = $inp->get_string_input;        
 
-        if ($fg_color !~ m/^[0-9]+$/) {
-            $scr->draw(20, 11, "Please enter a number between 0-255", 1, 7, 1);        
-        } elsif ($fg_color < 0 || $fg_color > 255) {
-            $scr->draw(20, 11, "Please enter a number between 0-255", 1, 7, 1);        
+        $name = $inp->get_string_input;
+        if ($name !~ m/^\s*$/) {
+            $name_valid = 1;
+            $name = uc($name);
         } else {
-            $fg_valid = 1;
+            $scr->draw(20, 11, "Please enter a name", 1, 7, 1);        
         }
-    } until ($fg_valid);
 
+    } until ($name_valid);
     $scr->draw(15, 11, "║                                          ║▒", 0, 7);   
-    $scr->draw(40, 7, $new_char, $fg_color, 0);
+    
 
-    my $bg_color;
-    my $bg_valid = 0;
+    my $hp;
+    my $hp_valid = 0;
     do { 
         
         $scr->draw(15, 8, "║                                          ║▒", 0, 7);   
-        $scr->draw(17, 8, "Background Color:", 0, 7);
+        $scr->draw(23, 8, "Hit Points:", 0, 7);
 
         $scr->set_cursor(35, 8);
-        $bg_color = $inp->get_string_input;        
+        $hp = $inp->get_string_input;        
 
-        if ($bg_color !~ m/^[0-9]+$/) {
-            $scr->draw(20, 11, "Please enter a number between 0-255", 1, 7, 1);        
-        } elsif ($bg_color < 0 || $bg_color > 255) {
-            $scr->draw(20, 11, "Please enter a number between 0-255", 1, 7, 1);        
+        if ($hp !~ m/^[0-9]+$/) {
+            $scr->draw(20, 11, "Please enter a number > 0", 1, 7, 1);        
+        } elsif ($hp < 0) {
+            $scr->draw(20, 11, "Please enter a number > 0", 1, 7, 1);        
         } else {
-            $bg_valid = 1;
+            $hp_valid = 1;
         }
-    } until ($bg_valid);
+    } until ($hp_valid);
 
     $scr->draw(15, 11, "║                                          ║▒", 0, 7);   
-    $scr->draw(40, 8, $new_char, $fg_color, $bg_color);
+
+    my $atk;
+    my $atk_valid = 0;
+    do { 
+        
+        $scr->draw(15, 9, "║                                          ║▒", 0, 7);   
+        $scr->draw(20, 9, "Attack Damage:", 0, 7);
+
+        $scr->set_cursor(35, 9);
+        $atk = $inp->get_string_input;        
+
+        if ($atk !~ m/^[0-9]+$/) {
+            $scr->draw(20, 11, "Please enter a number > 0", 1, 7, 1);        
+        } elsif ($atk < 0) {
+            $scr->draw(20, 11, "Please enter a number > 0", 1, 7, 1);        
+        } else {
+            $atk_valid = 1;
+        }
+    } until ($atk_valid);
+
+    $scr->draw(15, 11, "║                                          ║▒", 0, 7);   
+    
 
 
     my $attr;
     my $attr_valid = 0;
     do { 
         
-        $scr->draw(15, 9, "║                                          ║▒", 0, 7);   
-        $scr->draw(24, 9, "Attribute:", 0, 7);
+        $scr->draw(15, 10, "║                                          ║▒", 0, 7);   
+        $scr->draw(23, 10, "Attributes:", 0, 7);
 
-        $scr->set_cursor(35, 9);
+        $scr->set_cursor(35, 10);
         $attr = $inp->get_string_input;        
 
         if ($attr !~ m/^[0-9]+$/) {
@@ -583,14 +613,18 @@ sub setup_new_enemy {
     } until ($attr_valid);
 
     $scr->draw(15, 11, "║                                          ║▒", 0, 7);   
-    $scr->draw(40, 9, $map->get_attribute_name($attr), 0, 7, 1);
-
-
-    $scr->draw(25, 11, "New Tile: ", 0, 7);
-    $scr->draw(35, 11, $new_char, $fg_color, $bg_color);
+    
     $scr->draw(20, 12, "Use these settings [y/n]", 0, 7, 1);
-
     my $confirm = $inp->blocking_getch;
+
+    if (lc($confirm) eq "y") {
+        $new_enemy{user_char} = $new_char;
+        $new_enemy{name} = $name;
+        $new_enemy{hp} = $hp;
+        $new_enemy{atk} = $atk;
+        $new_enemy{attr} = $attr;
+        $log->info("Setting enemy settings..." . Dumper \%new_enemy);
+    }
 
 
     redraw_screen();
@@ -598,8 +632,12 @@ sub setup_new_enemy {
 
 
 sub place_new_enemy {
+    my ($x, $y) = @_;
 
-    $map->enemies->add_enemy(name => "Enemy1", user_char => "@", x => 25, y => 15);    
+    $new_enemy{x} = $x;
+    $new_enemy{y} = $y;
+
+    $map->enemies->add_enemy(%new_enemy);    
     redraw_screen();
 }
 

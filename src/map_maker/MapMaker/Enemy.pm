@@ -10,9 +10,9 @@ has enemy_hash => (
     default => sub { $_ = {} }
 );
 
-has world_id => (
+has world_location => (
     is => 'rwp', 
-    default => 0
+    default => sub { $_ = {} }
 );
 
 has logger => (
@@ -21,20 +21,27 @@ has logger => (
 );
 
 
-sub update_world_id {
-    my ($self, $new_world_id) = @_;
+sub update_world_location {
+    my ($self, $new_world_id, $new_map_x, $new_map_y) = @_;
 
-    if ($new_world_id < 0) {
-        $self->log->error("Invalid new world Id for Enemies: $new_world_id");
+    if ($new_world_id < 0 || $new_map_x < 0 || $new_map_y < 0) {
+        $self->log->error("Invalid new world coordinates for Enemies: $new_world_id, $new_map_x, $new_map_y");
         return;
     }
 
-    $self->_set_world_id($new_world_id);
+    $self->_set_world_location({
+        world_id => $new_world_id,
+        map_x => $new_map_x,
+        map_y => $new_map_y
+    });
+
     foreach my $enemy_id (keys $self->enemy_hash->%*) {
         $self->enemy_hash->{$enemy_id}{world_id} = $new_world_id;
+        $self->enemy_hash->{$enemy_id}{map_x} = $new_map_x;
+        $self->enemy_hash->{$enemy_id}{map_y} = $new_map_y;
     }
 
-    $self->logger->info("Updated enemies in hash with new world id: $new_world_id");
+    $self->logger->info("Updated enemies in hash with new world location: " . Dumper \$self->world_location);
 
 }
 
@@ -51,7 +58,9 @@ sub add_enemy {
     my $enemy_id = "ENEMY-" . $ug->to_string($user_id_raw);
 
     $enemy_info{id} = $enemy_id;
-    $enemy_info{world_id} = $self->world_id;
+    $enemy_info{world_id} = $self->world_location->{world_id};
+    $enemy_info{map_x} = $self->world_location->{map_x};
+    $enemy_info{map_y} = $self->world_location->{map_y};
 
     
 
@@ -73,7 +82,7 @@ sub get_enemy_at_cursor {
         # $self->logger->info("Checking enemy id: $enemy_id DUMP: " . Dumper \$self->enemy_hash->{$enemy_id});
 
         if ($self->enemy_hash->{$enemy_id}{x} == $x && $self->enemy_hash->{$enemy_id}{y} == $y) {
-            $self->logger->info("FOUND ENEMY! " . Dumper \$self->enemy_hash->{$enemy_id});
+            $self->logger->debug("FOUND ENEMY! " . Dumper \$self->enemy_hash->{$enemy_id});
             return $self->enemy_hash->{$enemy_id}{user_char};
         }
     }

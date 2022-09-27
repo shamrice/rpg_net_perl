@@ -65,7 +65,7 @@ sub set_map_coordinates {
         map_y => $map_y
     });
 
-    $self->enemies->update_world_id($world_id);
+    $self->enemies->update_world_location($world_id, $map_x, $map_y);
 
     $self->are_coordinates_set(1);
     $self->logger->info("Updated map coordinates to: " . Dumper \$self->{map_coordinates});
@@ -108,7 +108,8 @@ sub save_map_data {
         return;
     };
 
-    return unless $self->enemies->save_enemy_data($map_file_name . ".json");
+    (my $enemy_file_name = $map_file_name) =~ s/\.map/-enemy\.json/;
+    return unless $self->enemies->save_enemy_data($enemy_file_name);
 
 
     my $map_coordinates_line = "#LOCATION=" . 
@@ -182,6 +183,9 @@ sub load_map_data {
         }
         $map_y++;
     }
+
+
+    #TODO : trigger enemy data file load here.
     
     $self->logger->trace("Finished setting map data : " . Dumper \$self->{map_data});
 }
