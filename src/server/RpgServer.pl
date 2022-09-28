@@ -99,36 +99,27 @@ sub load_enemy_data {
     foreach my $enemy_filename (@enemy_files) {
 
         open(my $ENEMY_FH, '<', $enemy_filename) or die "Cannot load enemy data: $!\n";
-        my $enemy_json_data;
-        while (<$ENEMY_FH>) {
-            my $row = $_;
-            chomp($row);
-            $enemy_json_data .= $row;
-        }
+
+        chomp(my @enemy_data = <$ENEMY_FH>);
+        my $enemy_json_data = join(' ', @enemy_data);
         close($ENEMY_FH);  
 
-        say "Read enemy json data: $enemy_json_data";
- 
         my $full_data = decode_json($enemy_json_data);
 
-        foreach my $data (@$full_data) {
-            $log->info("JSON data: $data");   
-            my $id = $data->{'id'} ;
-            my $name = $data->{'name'};
-            my $user_char = $data->{'user_char'};
-            my $world_id = $data->{'world_id'};
-            my $map_x = $data->{'map_x'};
-            my $map_y = $data->{'map_y'};
-            my $x = $data->{'x'};
-            my $y = $data->{'y'};
-  
-            $user_service->add_user($id, $name, $user_char, $world_id, $map_x, $map_y, $x, $y);
-        }
+        foreach my $data (@$full_data) {        
+        
+            my %enemy_to_add;
+
+            foreach  my $enemy_key (keys %$data) {
+                $enemy_to_add{$enemy_key} = %$data{$enemy_key};
+            }
+
+            $user_service->add_user(\%enemy_to_add) or $log->warn("Error adding enemy data: " . Dumper(\%enemy_to_add));
+        }              
     }
-    
 }
 
-    
+
 post '/rest/user/add/:id' => sub {
     my $self = shift;
     my $id = $self->param('id');
@@ -141,19 +132,14 @@ post '/rest/user/add/:id' => sub {
         return $self->render(json => $error_response, status => 401);
     } 
 
- 
     my $data = decode_json($self->req->body);
-    $log->info("JSON data: $data");     
-    my $name = $data->{'name'};
-    my $user_char = $data->{'user_char'};
-    my $world_id = $data->{'world_id'};
-    my $map_x = $data->{'map_x'};
-    my $map_y = $data->{'map_y'};
-    my $x = $data->{'x'};
-    my $y = $data->{'y'};
-     
- 
-    if (!$user_service->add_user($id, $name, $user_char, $world_id, $map_x, $map_y, $x, $y)) {         
+    my %user_to_add;
+
+    foreach  my $user_key (keys %$data) {
+        $user_to_add{$user_key} = %$data{$user_key};
+    }
+    
+    if (!$user_service->add_user(\%user_to_add)) {
         my $error_response = {
             id => $id, 
             status => "User already added", 

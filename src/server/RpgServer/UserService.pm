@@ -3,6 +3,7 @@ package RpgServer::UserService;
 use strict;
 use warnings;
 use Moo;
+use Data::Dumper;
 
 use RpgServer::User;
 
@@ -43,21 +44,14 @@ sub activity_timeout_checker {
 =cut
 
 
-sub add_user {
-    my ($self, $id, $name, $user_char, $world_id, $map_x, $map_y, $x, $y) = @_;
+sub add_user {    
+    my ($self, $user_attributes) = @_;
 
     # TODO : validate that the values sent in are sane / valid.
- 
-    my $new_user = RpgServer::User->new(
-        id => $id, 
-        name => $name, 
-        user_char => $user_char, 
-        world_id => $world_id,
-        map_x => $map_x,
-        map_y => $map_y,
-        x => $x, 
-        y => $y
-    );    
+
+    $log->info("Adding new user: " . Dumper(\$user_attributes));
+
+    my $new_user = RpgServer::User->new(%$user_attributes);    
 
     my $new_id = $new_user->id;
     $log->info("New id = $new_id");
