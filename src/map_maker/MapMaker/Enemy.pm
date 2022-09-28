@@ -73,9 +73,6 @@ sub add_enemy {
 sub get_enemy_at_cursor {
     my ($self, $x, $y) = @_;
 
-    #compensate for map display offset.
-    #$x -= 1;
-    #$y -= 2;
     
     foreach my $enemy_id (keys $self->enemy_hash->%*) {
 
@@ -94,7 +91,7 @@ sub save_enemy_data {
     my ($self, $file_name) = @_;
     
     open (my $ENEMY_FH, '>', $file_name) or do {
-        $self->logger->error("Failed to open output enemy file: $file_name :: $!");
+        $self->logger->error("Failed to open output enemy file for saving: $file_name :: $!");
         return;
     };
 
@@ -109,6 +106,43 @@ sub save_enemy_data {
     $self->logger->info("Enemies to save: " . Dumper \$enemy_json);
     print $ENEMY_FH $enemy_json;
     close($ENEMY_FH);
+
+    return 1;
+}
+
+
+sub load_enemy_data {
+    my ($self, $file_name) = @_;
+
+
+    open(my $ENEMY_FH, '<', $file_name) or do { 
+        $self->logger->error("Cannot open enemy data file for loading: $file_name :: $!");
+        return;
+    };
+
+    chomp(my @enemy_data = <$ENEMY_FH>);
+    my $enemy_json_data = join(' ', @enemy_data);
+    close($ENEMY_FH);  
+
+    $self->logger->debug("Read enemy json data: $enemy_json_data");
+ 
+    my $full_data = decode_json($enemy_json_data);
+
+    $self->{enemy_hash} = ();
+
+    foreach my $data (@$full_data) {
+        $self->logger->debug("JSON data: " . Dumper \$data);   
+        
+        my %enemy_to_add;
+
+        foreach  my $enemy_key (keys %$data) {
+            $enemy_to_add{$enemy_key} = %$data{$enemy_key};
+        }
+
+        $self->{enemy_hash}->{$enemy_to_add{id}} = {%enemy_to_add};
+              
+    }
+    $self->logger->info("Loaded enemies: " . Dumper \$self->enemy_hash);
 
     return 1;
 }

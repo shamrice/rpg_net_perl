@@ -108,6 +108,7 @@ sub save_map_data {
         return;
     };
 
+    # Save enemy data if map output was able to be opened.
     (my $enemy_file_name = $map_file_name) =~ s/\.map/-enemy\.json/;
     return unless $self->enemies->save_enemy_data($enemy_file_name);
 
@@ -141,6 +142,7 @@ sub save_map_data {
     return 1;
 }
 
+
 sub load_map_data {
     my ($self, $map_file_name) = @_;
 
@@ -150,10 +152,15 @@ sub load_map_data {
     chomp(my @map_rows = <$MAP_FH>);
     close($MAP_FH);
     
+    #load enemy data
+    (my $enemy_file_name = $map_file_name) =~ s/\.map/-enemy\.json/;
+    return unless $self->enemies->load_enemy_data($enemy_file_name);
+
     my $map_y = 0;
     foreach my $row (@map_rows) {
         $row =~ s/!//;
 
+        # get location data if exists
         if ($row =~ m/^#LOCATION=\d*,\d*,\d*$/) {
             (my $location_str = $row) =~ s/^#LOCATION=//;
             my ($world_id, $map_x, $map_y) = split(/,/, $location_str);
@@ -161,18 +168,17 @@ sub load_map_data {
             $self->set_map_coordinates($world_id, $map_x, $map_y);
         }
 
+        # ignore comment rows
         if ($row =~ m/^#.*/) {
             next;
         }
-
-        # say "Row = $row";        
-        my @row_data = split(/\|/, $row);        
-        # say "Row data = @row_data";
+        
+        my @row_data = split(/\|/, $row);                
         my $map_x = 0;
         foreach my $x_data (@row_data) {            
-            # say "x b = $x_data";
+            
             my ($draw_value, $attr_value, $fg_color, $bg_color) = split(",", $x_data);
-            # say "dv av = $draw_value $attr_value";
+            
             $self->{map_data}->{$map_y}{$map_x} = {
                 tile_id => $draw_value,
                 attr => $attr_value,
@@ -183,9 +189,6 @@ sub load_map_data {
         }
         $map_y++;
     }
-
-
-    #TODO : trigger enemy data file load here.
     
     $self->logger->trace("Finished setting map data : " . Dumper \$self->{map_data});
 }
