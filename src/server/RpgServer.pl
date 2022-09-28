@@ -63,13 +63,10 @@ sub load_map_data {
     foreach my $map_file (@map_files) {
         my $map_data_raw;
         open(my $MAP_FH, '<', $map_file) or die "Cannot load test map data : $!\n";
-        while (<$MAP_FH>) {
-            my $row = $_;
-            chomp($row);
-            if ($row !~ m/^#.*/) {                
-                $map_data_raw .= $row;
-            }  
-        }
+        
+        chomp(my @map_data_rows = grep { $_ !~ m/^#/ } <$MAP_FH>);
+        $map_data_raw = join ' ', @map_data_rows;
+ 
         close($MAP_FH);
 
         (my $map_filename = $map_file) =~ s/^.*\///;
@@ -252,15 +249,13 @@ put '/rest/user/:id' => sub {
     my $data = decode_json($self->req->body);
     $log->trace("JSON data: " . Dumper \$data);     
 
-    my $name = $data->{'name'};
-    my $user_char = $data->{'user_char'};
-    my $world_id = $data->{'world_id'};
-    my $map_x = $data->{'map_x'};
-    my $map_y = $data->{'map_y'};
-    my $x = $data->{'x'};
-    my $y = $data->{'y'};
- 
-    if ($user_service->update_user($id, $name, $user_char, $world_id, $map_x, $map_y, $x, $y)) {
+    my %user_to_update;
+
+    foreach my $user_attr_key (keys %$data) {
+        $user_to_update{$user_attr_key} = %$data{$user_attr_key};
+    }
+    
+    if ($user_service->update_user(\%user_to_update)) {
         my $response = {
             userId => $id, 
             status => "Success",

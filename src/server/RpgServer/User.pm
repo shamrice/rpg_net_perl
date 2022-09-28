@@ -55,29 +55,29 @@ sub BUILD {
 
 
 sub update {
-    my ($self, $world_id, $map_x, $map_y, $x, $y, $name, $user_char) = @_;
+    my ($self, $user_attributes) = @_;    
 
-    if (defined $world_id) {
-        $self->_set_world_id($world_id);
+    if (exists $user_attributes->{world_id}) {
+        $self->_set_world_id($user_attributes->{world_id});
     }
 
-    if (defined $map_x) {        
-        $self->_set_map_x($map_x);        
+    if (exists $user_attributes->{map_x}) {        
+        $self->_set_map_x($user_attributes->{map_x});        
     }
-    if (defined $map_y) {        
-        $self->_set_map_y($map_y);
+    if (exists $user_attributes->{map_y}) {        
+        $self->_set_map_y($user_attributes->{map_y});
     }
-    if (defined $x) {        
-        $self->_set_x($x);        
+    if (exists $user_attributes->{x}) {        
+        $self->_set_x($user_attributes->{x});        
     }
-    if (defined $y) {        
-        $self->_set_y($y);
+    if (exists $user_attributes->{y}) {        
+        $self->_set_y($user_attributes->{y});
     }
-    if (defined $name) {
-        $self->_set_name($name);
+    if (exists $user_attributes->{name}) {
+        $self->_set_name($user_attributes->{name});
     }
-    if (defined $user_char) {
-        $self->_set_user_char($user_char);
+    if (exists $user_attributes->{user_char}) {
+        $self->_set_user_char($user_attributes->{user_char});
     }   
 
     $self->_set_last_activity(time()); 

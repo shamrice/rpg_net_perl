@@ -71,8 +71,9 @@ sub add_user {
 }
 
 
-sub update_user {
-    my ($self, $id, $name, $user_char, $world_id, $map_x, $map_y, $x, $y) = @_;
+sub update_user {    
+    my ($self, $user_to_update) = @_;
+    my $id = $user_to_update->{id};
     
     # TODO : validate that the values sent in are sane / valid.
 
@@ -81,9 +82,9 @@ sub update_user {
         return 0;        
     }
  
-    $log->info("Updating user id: $id :: world_id: $world_id :: map_x: $map_x : map_y: $map_y : x: $x : y: $y name: $name : user_char: $user_char ");
+    $log->info("Updating user id: $id :: Attributes: " . Dumper(\$user_to_update));
        
-    $user_hash{$id}->update($world_id, $map_x, $map_y, $x, $y, $name, $user_char);
+    $user_hash{$id}->update($user_to_update); 
     return 1;
 }
 
