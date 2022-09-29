@@ -44,10 +44,10 @@ my $log = Log::Log4perl->get_logger("MapMaker");
 my $scr = MapMaker::Screen->new(use_term_colors => 1);
 my $inp = MapMaker::UserInput->new(screen => $scr->{screen});
 my $map = MapMaker::Map->new(screen => $scr);
-# my $enemy = MapMaker::Enemy->new();
+
 
 if ($map_filename ne "") {
-    $map->load_map_data($map_filename);
+    $map->load_map_data($map_filename) or $map->new_map();
 } else {
     $map->new_map();
 }
@@ -155,9 +155,9 @@ do {
 
     my %tile = $map->get_tile_hash_at_cursor($cursor_info{x}, $cursor_info{y});
 
-    $scr->draw_repeat(95, 3, " ", 0, 0, 20);
-    $scr->set_cursor(95, 3);    
-    say "Cur x/y: " . $cursor_info{x} . "/" . $cursor_info{y};
+    # $scr->draw_repeat(95, 3, " ", 0, 0, 20);
+    # $scr->set_cursor(95, 3);    
+    # say "Cur x/y: " . $cursor_info{x} . "/" . $cursor_info{y};
         
 
     $scr->clear_line(24);
@@ -320,8 +320,7 @@ sub load_existing_map {
     $scr->set_cursor(33, 7);
     my $filename = $inp->get_string_input();
 
-    if ($filename ne "") {
-        $map->load_map_data($filename);
+    if ($map->load_map_data($filename)) {        
         $scr->draw(32, 8, "Loaded!", 2, 7, 1);
         $inp->blocking_getch();
     } else {

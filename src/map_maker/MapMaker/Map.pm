@@ -146,9 +146,15 @@ sub save_map_data {
 sub load_map_data {
     my ($self, $map_file_name) = @_;
 
-    # TODO : Return true/false on success failure instead of hard crashing.
+    if ($map_file_name eq "") {
+        $self->logger->info("Cannot load map without file name.");
+        return;
+    }
 
-    open(my $MAP_FH, '<', $map_file_name) or confess "Failed to open map file: $map_file_name :: $!";
+    open(my $MAP_FH, '<', $map_file_name) or do {
+        $self->logger->error("Failed to open map file: $map_file_name :: $!");
+        return;
+    };
     chomp(my @map_rows = <$MAP_FH>);
     close($MAP_FH);
     
@@ -191,6 +197,7 @@ sub load_map_data {
     }
     
     $self->logger->trace("Finished setting map data : " . Dumper \$self->{map_data});
+    return 1;
 }
 
 sub draw_map {
