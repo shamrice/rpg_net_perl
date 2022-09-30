@@ -291,12 +291,15 @@ sub get_tile_data {
 
 
 sub get_tile_hash_at_cursor {
+    my ($self, $cursor_x, $cursor_y) = @_;
+    
+    # compensate for the offset of the display location and the actual xy in memory.
+    return $self->get_tile_hash_at_map_xy($cursor_x -1, $cursor_y - 2);
+}
+
+sub get_tile_hash_at_map_xy {
     my ($self, $x, $y) = @_;
 
-    # compensate for the offset of the display location and the actual xy in memory.
-    $x -= 1;
-    $y -= 2;
-    
     # don't call out of bounds or will cause autovivication of that invalid range. Hard stop for now.
     if ($y < 0 || $y >= MAP_VERTICAL_MAX) {
         $self->logger->logconfess("Attempted to get out of bounds y tile at: $x, $y");
@@ -322,6 +325,7 @@ sub get_tile_hash_at_cursor {
         fg_color => $tile->{fg_color},
         bg_color => $tile->{bg_color},
         char => chr($tile->{tile_id}), # $self->map_tile_lookup->{$tile->{tile_id}},
+        tile_id => $tile->{tile_id},
         attr => $tile->{attr}
     );
 
@@ -347,5 +351,53 @@ sub get_attribute_name {
 
     return $attribute_name;
 }
+
+
+sub convert_all_tiles {
+    my ($self, $cursor_x, $cursor_y, $new_tile_ref) = @_;
+
+    my %tile_to_convert = $self->get_tile_hash_at_cursor($cursor_x, $cursor_y);
+
+    if (!%tile_to_convert) {
+        $self->logger->warn("No tile found at cursor position: $cursor_x, $cursor_y");
+        return;
+    }
+
+    $new_tile_ref->{tile_id} = ord($new_tile_ref->{char});
+
+    $self->logger->debug("New tile: " . Dumper(\$new_tile_ref) . " match tile: " . Dumper(\%tile_to_convert));
+
+    foreach my $y (keys %{$self->map_data}) {
+        foreach my $x (keys %{$self->map_data->{0}}) {
+            
+            my $tile_id = $self->map_data->{$y}{$x}{tile_id};
+
+            #if for some reason tile_id is called at an unset x,y. die with confession.
+            if (!defined $tile_id) {
+                $self->logger->logconfess("TILE ID NOT DEFINED AT: $y,$x : map_data=" . Dumper \$self->map_data);
+            }
+
+            $self->logger->trace("checking tile: " . Dumper(\$self->map_data->{$y}{$x}));
+
+            if ($self->map_data->{$y}{$x}{tile_id} == $tile_to_convert{tile_id} &&
+                $self->map_data->{$y}{$x}{attr} == $tile_to_convert{attr} &&
+                $self->map_data->{$y}{$x}{fg_color} == $tile_to_convert{fg_color} &&
+                $self->map_data->{$y}{$x}{bg_color} == $tile_to_convert{bg_color}) {
+
+                $self->logger->debug("Tile matches... converting to new tile. old tile: " . Dumper(\$self->map_data->{$y}{$x}) . " new tile: " . Dumper(\$new_tile_ref));
+
+                $new_tile_ref->{x} = $x; 
+                $new_tile_ref->{y} = $y;
+                $self->set_tile(%{$new_tile_ref});
+
+            }            
+                
+        
+        }
+    }
+
+
+}
+
 
 1;

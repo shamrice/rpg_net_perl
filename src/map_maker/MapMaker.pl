@@ -109,6 +109,8 @@ do {
         place_new_enemy($cursor_info{x}, $cursor_info{y});
     } elsif ($user_inp eq "E") {
         setup_new_enemy();
+    } elsif ($user_inp eq "f") {
+        convert_tiles();        
     } elsif ($user_inp eq "n") {
         create_new_map();
     } elsif ($user_inp eq "o") {
@@ -218,13 +220,14 @@ sub draw_command_help {
     $scr->draw(85, 3, "w,a,s,d - Move cursor", 0, 7);
     $scr->draw(85, 4, "      e - Place enemy", 0, 7);
     $scr->draw(85, 5, "      E - Configure enemy", 0, 7);
-    $scr->draw(85, 6, "      n - New map", 0, 7);
-    $scr->draw(85, 7, "      o - Open man", 0, 7);
-    $scr->draw(85, 8, "      p - Set map world coordinates", 0, 7);
-    $scr->draw(85, 9, "      q - Quit", 0, 7);
-    $scr->draw(85, 10, "      t - Configure tile", 0, 7);
-    $scr->draw(85, 11, "  space - Place tile", 0, 7);
-    $scr->draw(85, 12, '      $ - Save map', 0, 7);
+    $scr->draw(85, 6, "      f - Convert matching tiles", 0, 7);
+    $scr->draw(85, 7, "      n - New map", 0, 7);
+    $scr->draw(85, 8, "      o - Open man", 0, 7);
+    $scr->draw(85, 9, "      p - Set map world coordinates", 0, 7);
+    $scr->draw(85, 10, "      q - Quit", 0, 7);
+    $scr->draw(85, 11, "      t - Configure tile", 0, 7);
+    $scr->draw(85, 12, "  space - Place tile", 0, 7);
+    $scr->draw(85, 13, '      $ - Save map', 0, 7);
 }
 
 
@@ -684,6 +687,28 @@ sub is_in_bounds {
 }
 
 
+sub convert_tiles {
+    
+    $scr->draw_window(
+        x => 35,
+        y => 10,
+        width => 59, 
+        height => 5,
+        fg_color => 0,
+        bg_color => 7,
+        title => "Convert Matching Tiles"        
+    );
+          #15, 10, 40, 4, 0, 7, "Quit");
+    $scr->draw(37, 12, "Are you sure you want to convert all tiles matching one at ", 0, 7);
+    $scr->draw(37, 13, "cursor with current new tile configuration? [y/N]: ", 0, 7);
+    my $confirm = lc($inp->blocking_getch());
+
+    if ($confirm eq 'y') {
+        $map->convert_all_tiles($cursor_info{x}, $cursor_info{y}, \%new_tile);
+    }
+
+    redraw_screen();
+}
 
 
 __END__
