@@ -196,7 +196,7 @@ do {
    
 } until ($quit);
 
-
+$scr->echo(1);
 $scr->refresh;
 
 say "Bye!";
