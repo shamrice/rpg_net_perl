@@ -58,6 +58,7 @@ if (!$map->are_coordinates_set) {
 
 redraw_screen();
 
+
 my %cursor_info = (
     x => 40,
     y => 10,
@@ -203,6 +204,30 @@ exit;
 
 
 
+sub draw_command_help {
+    $scr->draw_window(
+        x => 83,
+        y => 1,
+        width => 40,
+        height => 20,
+        fg_color => 0,
+        bg_color => 7,
+        title => "Commands"
+    );
+
+    $scr->draw(85, 3, "w,a,s,d - Move cursor", 0, 7);
+    $scr->draw(85, 4, "      e - Place enemy", 0, 7);
+    $scr->draw(85, 5, "      E - Configure enemy", 0, 7);
+    $scr->draw(85, 6, "      n - New map", 0, 7);
+    $scr->draw(85, 7, "      o - Open man", 0, 7);
+    $scr->draw(85, 8, "      p - Set map world coordinates", 0, 7);
+    $scr->draw(85, 9, "      q - Quit", 0, 7);
+    $scr->draw(85, 10, "      t - Configure tile", 0, 7);
+    $scr->draw(85, 11, "  space - Place tile", 0, 7);
+    $scr->draw(85, 12, '      $ - Save map', 0, 7);
+}
+
+
 sub set_map_coordinates {
     $scr->draw_window(
         x => 10,
@@ -276,6 +301,8 @@ sub redraw_screen {
 
     $scr->set_cursor(1, 23);
     say "MAP FILENAME: $map_filename";
+
+    draw_command_help();
 }
 
 
